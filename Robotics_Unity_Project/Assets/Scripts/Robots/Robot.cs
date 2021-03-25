@@ -16,8 +16,11 @@ public class Robot : MonoBehaviour {
     };
 
     #endregion
+
     #region Inspector Fields
+
     #endregion
+
     #region RunTime Fields
     // Robot fields
     private RobotState robotState;

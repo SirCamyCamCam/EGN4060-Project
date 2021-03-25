@@ -55,19 +55,11 @@ public class WaypointManager : MonoBehaviour {
 
     [Header("Settings")]
     [SerializeField]
-    private int maxRobots;
+    private int maxWaypoints;
     [SerializeField]
-    private float maxSpawnDistance;
-    [SerializeField]
-    private float minAllowedBetweenDistance;
-    [SerializeField]
-    private float maxLeafSpawnDistance;
-    [SerializeField]
-    private float minLeafBetweenDistance;
-    [SerializeField]
-    private float maxLeafConnectedDistance;
-    [SerializeField]
-    private bool spawnLeavesRandomly;
+    private float minDistanceBetweenWaypoints;
+    //[SerializeField]
+    // private float 
 
     [Space(10)]
     [Header("Sprite Renderers")]
@@ -192,14 +184,11 @@ public class WaypointManager : MonoBehaviour {
         return list;
     }
 
-    #endregion
-
-    #region Public Methods
 
     // Spawns a new Waypoint
     public Waypoint SpawnWaypoint(
-        WaypointManager.WaypointType waypointType,  
-        List<Waypoint> connectedWaypoints, 
+        WaypointManager.WaypointType waypointType,
+        List<Waypoint> connectedWaypoints,
         Vector3 spawnLocation)
     {
         // Spawn it
@@ -252,13 +241,13 @@ public class WaypointManager : MonoBehaviour {
                 newLine.SetPosition(1, newWaypointGameObject.transform.position);
                 newLine.sortingOrder = -1;
                 newLine.enabled = false;
-               
+
                 waypointLines.Add(newBridge, newLine);
             }
         }
 
         // Add to type list
-        switch(waypointType)
+        switch (waypointType)
         {
             case WaypointType.TRANSITION:
                 transitionWaypoints.Add(newWaypointClass);
@@ -279,7 +268,7 @@ public class WaypointManager : MonoBehaviour {
         return newWaypointClass;
     }
 
-    
+
 
     public List<GameObject> SearchPathUnknownTarget(Waypoint initalWaypoint, WaypointType waypointTypeToFind)
     {
@@ -349,6 +338,26 @@ public class WaypointManager : MonoBehaviour {
         int random = Random.Range(0, allWaypoints.Count - 1);
 
         return allWaypoints[random];
+    }
+    #endregion
+
+    #region Public Methods
+
+    // Returns a list of waypoints to follow back home
+    public Waypoint[] ReturnToHome()
+    {
+
+        return null;
+    }
+
+    public void AddtoRememberedPaths(Waypoint[] listOfWaypoints, ResourceManager.ResourceType typeAtEndOfPath)
+    {
+
+    }
+
+    public Waypoint[] GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
+    {
+        return null;
     }
 
     #endregion

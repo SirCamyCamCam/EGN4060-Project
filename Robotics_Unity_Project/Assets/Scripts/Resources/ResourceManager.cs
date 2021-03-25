@@ -18,7 +18,10 @@ public class ResourceManager : MonoBehaviour
 
     #region Enum
 
-    // Stuff
+    public enum ResourceType
+    {
+
+    }
 
     #endregion
 
@@ -47,13 +50,13 @@ public class ResourceManager : MonoBehaviour
 
     private void Awake()
     {
-        
+        main = this;
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
