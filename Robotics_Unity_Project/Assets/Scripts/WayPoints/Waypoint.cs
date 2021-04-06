@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------
-// Coloniant - WaypointManager                          2/23/2020
+// MoonSim - Waypoint                                   4/05/2021
 // Author(s): Cameron Carstens
 // Contact: cameroncarstens@knights.ucf.edu
 // --------------------------------------------------------------
@@ -17,25 +17,13 @@ public class Waypoint : MonoBehaviour {
     private GameObject attachedGameObject;
     [SerializeField]
     private SpriteRenderer spriteRenderer;
-    [SerializeField]
-    private AnimationCurve bounceCurve;
-
-    [Header("Settings")]
-    [SerializeField]
-    private float bounceRate;
-    [SerializeField]
-    private float bounceHeight;
 
     #endregion
 
-    #region Runt-Time Fields
+    #region Run-Time Fields
 
     private WaypointManager.WaypointType type;
-    [HideInInspector]
-    public List<Waypoint> connectedWaypoints;
-    private float originalHeight;
-    // Depreciated
-    private float bounceTime;
+    private List<Waypoint> connectedWaypoints;
 
     #endregion
 
@@ -49,25 +37,8 @@ public class Waypoint : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        if (type == WaypointManager.WaypointType.TRANSITION)
-        {
-            spriteRenderer.transform.localScale = new Vector3(0.65f, 0.65f, 0.65f);
-        }
 
-        originalHeight = spriteRenderer.transform.position.y;
-
-        //StartCoroutine(BounceUp());
     }
-
-    // Update is called once per frame
-    void Update () {
-        spriteRenderer.transform.position = new Vector3
-            (
-            spriteRenderer.transform.position.x,
-            originalHeight + (Mathf.Sin(Time.time * bounceRate) * bounceHeight),
-            spriteRenderer.transform.position.z
-            );
-	}
 
     #endregion
 
@@ -109,71 +80,21 @@ public class Waypoint : MonoBehaviour {
         spriteRenderer.sprite = sprite;
     }
 
+    // Returns connected waypoints
+    public List<Waypoint> GetConnectedWaypoints()
+    {
+        return connectedWaypoints;
+    }
+
     #endregion
 
     #region Private Methods
 
-    private void CallDown()
-    {
-        StartCoroutine(BounceDown());
-    }
-
-    private void CallUp()
-    {
-        StartCoroutine(BounceUp());
-    }
 
     #endregion
 
     #region Coroutines
 
-    private IEnumerator BounceUp()
-    {
-        float startTime = Time.time;
-        Vector3 targetPos = new Vector3
-            (
-            spriteRenderer.transform.position.x,
-            originalHeight + (bounceHeight / 2),
-            spriteRenderer.transform.position.z
-            );
-        float randomAddition = Random.Range(0, 0.3f);
-        //randomAddition = 0;
-
-        while ((Time.time - startTime) < (bounceTime + randomAddition))
-        {
-            float t = bounceCurve.Evaluate((Time.time - startTime) / (bounceTime + randomAddition));
-
-            spriteRenderer.transform.position = Vector3.Lerp(spriteRenderer.transform.position, targetPos, t);
-        }
-
-        yield return new WaitForSeconds(0);
-
-        CallDown();
-    }
-
-    private IEnumerator BounceDown()
-    {
-        float startTime = Time.time;
-        Vector3 targetPos = new Vector3
-            (
-            spriteRenderer.transform.position.x,
-            originalHeight - (bounceHeight / 2),
-            spriteRenderer.transform.position.z
-            );
-        float randomAddition = Random.Range(0, 0.3f);
-        //randomAddition = 0;
-
-        while ((Time.time - startTime) < (bounceTime  + randomAddition))
-        {
-            float t = bounceCurve.Evaluate((Time.time - startTime) / (bounceTime + randomAddition));
-
-            spriteRenderer.transform.position = Vector3.Lerp(spriteRenderer.transform.position, targetPos, t);
-        }
-
-        yield return new WaitForSeconds(0);
-
-        CallUp();
-    }
 
     #endregion
 }

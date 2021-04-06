@@ -81,7 +81,8 @@ public class Robot : MonoBehaviour {
     public void AssignWaypointList(List<GameObject> list) {}
     public GameObject ReturnCurrWaypoint() 
     {
-        return currWaypoint;
+        return null;
+        //return currWaypoint;
     }
     public GameObject ReturnTargetWaypoint() 
     {

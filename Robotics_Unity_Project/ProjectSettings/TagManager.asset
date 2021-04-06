@@ -41,3 +41,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Waypoints
+    uniqueID: 82112115
+    locked: 0
+  - name: Background
+    uniqueID: 83041447
+    locked: 0

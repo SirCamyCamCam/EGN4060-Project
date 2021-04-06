@@ -32,7 +32,8 @@ public class WaypointManager : MonoBehaviour {
     public enum WaypointType
     {
         HOME,
-        TRANSITION
+        TRANSITION,
+        CHARGING
     }
 
     #endregion
@@ -58,7 +59,7 @@ public class WaypointManager : MonoBehaviour {
     private int maxWaypoints;
     [SerializeField]
     private float minDistanceBetweenWaypoints;
-    //[SerializeField]
+    // [SerializeField]
     // private float 
 
     [Space(10)]
@@ -75,9 +76,10 @@ public class WaypointManager : MonoBehaviour {
 
     #region Run-Time Fields
 
-    public List<Waypoint> allWaypoints;
+    private List<Waypoint> allWaypoints;
     private List<Waypoint> homeWaypoints;
     private List<Waypoint> transitionWaypoints;
+    private List<Waypoint> chargingWaypoints;
     private HashSet<WaypointBridge> bridgeSet;
     private Dictionary<WaypointBridge, LineRenderer> waypointLines;
 
@@ -95,6 +97,7 @@ public class WaypointManager : MonoBehaviour {
         allWaypoints = new List<Waypoint>();
         homeWaypoints = new List<Waypoint>();
         transitionWaypoints = new List<Waypoint>();
+        chargingWaypoints = new List<Waypoint>();
 }
 
     // Use this for initialization
@@ -127,7 +130,7 @@ public class WaypointManager : MonoBehaviour {
         // int i = 0;
 
         // check for other posibilties
-        foreach (Waypoint w in currentWaypoint.connectedWaypoints)
+        foreach (Waypoint w in currentWaypoint.GetConnectedWaypoints())
         {
             //Debug.Log(i);
             //i++;
@@ -162,7 +165,7 @@ public class WaypointManager : MonoBehaviour {
         }
 
         // check for other posibilties
-        foreach (Waypoint w in currentWaypoint.connectedWaypoints)
+        foreach (Waypoint w in currentWaypoint.GetConnectedWaypoints())
         {
             //Debug.Log(i);
             //i++;
@@ -186,7 +189,7 @@ public class WaypointManager : MonoBehaviour {
 
 
     // Spawns a new Waypoint
-    public Waypoint SpawnWaypoint(
+    private Waypoint SpawnWaypoint(
         WaypointManager.WaypointType waypointType,
         List<Waypoint> connectedWaypoints,
         Vector3 spawnLocation)
@@ -270,7 +273,7 @@ public class WaypointManager : MonoBehaviour {
 
 
 
-    public List<GameObject> SearchPathUnknownTarget(Waypoint initalWaypoint, WaypointType waypointTypeToFind)
+    private List<GameObject> SearchPathUnknownTarget(Waypoint initalWaypoint, WaypointType waypointTypeToFind)
     {
         List<GameObject> path = new List<GameObject>();
         List<Waypoint> visited = new List<Waypoint>();
@@ -310,7 +313,7 @@ public class WaypointManager : MonoBehaviour {
         return path;
     }
 
-    public List<GameObject> SearchPathKnownTarget(Waypoint initalWaypoint, Waypoint targetWaypoint)
+    private List<GameObject> SearchPathKnownTarget(Waypoint initalWaypoint, Waypoint targetWaypoint)
     {
         List<GameObject> path = new List<GameObject>();
         List<Waypoint> visited = new List<Waypoint>();
@@ -323,22 +326,23 @@ public class WaypointManager : MonoBehaviour {
         return path;
     }
 
-    public GameObject ReturnTransitionGameObject()
+    private GameObject ReturnTransitionGameObject()
     {
         return transitionWaypoints[0].gameObject;
     }
 
-    public List<Waypoint> ReturnHomeList()
+    private List<Waypoint> ReturnHomeList()
     {
         return homeWaypoints;
     }
 
-    public Waypoint ReturnRandomWaypoint()
+    private Waypoint ReturnRandomWaypoint()
     {
         int random = Random.Range(0, allWaypoints.Count - 1);
 
         return allWaypoints[random];
     }
+
     #endregion
 
     #region Public Methods
@@ -358,6 +362,30 @@ public class WaypointManager : MonoBehaviour {
     public Waypoint[] GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
     {
         return null;
+    }
+
+    public Waypoint GetHomeWaypoint()
+    {
+        if (homeWaypoints.Count == 0)
+        {
+            return null;
+        }
+
+        int random = Random.Range(0, homeWaypoints.Count - 1);
+
+        return homeWaypoints[random];
+    }
+
+    public Waypoint GetChargingWaypoint()
+    {
+        if (chargingWaypoints.Count == 0)
+        {
+            return null;
+        }
+
+        int random = Random.Range(0, chargingWaypoints.Count - 1);
+
+        return chargingWaypoints[random];
     }
 
     #endregion
