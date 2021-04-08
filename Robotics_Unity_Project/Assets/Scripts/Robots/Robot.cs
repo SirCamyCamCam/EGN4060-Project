@@ -8,7 +8,8 @@ public class Robot : MonoBehaviour {
 
     public enum RobotState
     {
-        LOCATE, GATHER, RETURN, IDLE, DEADBATTERY, CHARGING, DESTROYED
+        LOCATE, GATHER, RETURN, IDLE, DEADBATTERY, CHARGING, DESTROYED,MOVING
+
     };
     public enum RobotType
     {
@@ -68,17 +69,46 @@ public class Robot : MonoBehaviour {
         }
     }
 
-    void Update() // Called once per frame 
+   void Update() // Called once per frame 
     {
+        if (targetWaypoint == null)
+        {
+            return;
+        }
+
+        if (robotState == RobotState.IDLE)
+        {
+            IdleRobot();
+        }
+        else if (robotState == RobotState.MOVING)
+        {
+            MovingRobot();
+            CheckWaypointDistance();
+        }
 
     }
+
 
     #endregion
 
     #region Public Methods
     // Waypoint related methods
-    public void AssignTargetWaypoint(GameObject target) {}
-    public void AssignWaypointList(List<GameObject> list) {}
+    public void AssignTargetWaypoint(GameObject target) 
+    {
+        prevWaypoint = targetWaypoint;
+        targetWaypoint = target;
+        if (prevWaypoint != null && targetWaypoint.GetComponent<Waypoint>() != null && prevWaypoint.GetComponent<Waypoint>() != null)
+        {
+            // Robot Moves
+        }
+    }
+    public void AssignWaypointList(List<GameObject> waypointList) 
+    {
+        waypointPath = waypointList;
+        AssignRobotState(RobotState.MOVING);
+        AssignTargetWaypoint(waypointPath[0]);
+        currentWaypoint = 0;
+    }
     public GameObject ReturnCurrWaypoint() 
     {
         return null;
@@ -128,3 +158,5 @@ public class Robot : MonoBehaviour {
     
 
 }
+
+
