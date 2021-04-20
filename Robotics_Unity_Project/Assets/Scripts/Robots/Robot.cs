@@ -78,12 +78,12 @@ public class Robot : MonoBehaviour {
 
         if (robotState == RobotState.IDLE)
         {
-            IdleRobot();
+            //IdleRobot();
         }
         else if (robotState == RobotState.MOVING)
         {
-            MovingRobot();
-            CheckWaypointDistance();
+            //MovingRobot();
+            //CheckWaypointDistance();
         }
 
     }

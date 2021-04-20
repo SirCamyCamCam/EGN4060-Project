@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------
-// MoonSim - WaypointManager                          4/26/2021
+// MoonSim - WaypointManager                          4/20/2021
 // Author(s): Cameron Carstens
 // Contact: cameroncarstens@knights.ucf.edu
 // --------------------------------------------------------------
@@ -23,6 +23,19 @@ public class WaypointManager : MonoBehaviour {
             waypoint1 = firstWaypoint;
             waypoint2 = secondWaypoint;
         }
+
+        public bool Contains(Waypoint w1, Waypoint w2)
+        {
+            if (w1 == waypoint1 && waypoint2 == w2)
+            {
+                return true;
+            }
+            else if (w1 == waypoint2 && w2 == waypoint1)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 
     #endregion
@@ -45,10 +58,6 @@ public class WaypointManager : MonoBehaviour {
     #endregion
 
     #region Inspector Fields
-
-    [Header("Line Renderer")]
-    public Material lineMaterial;
-    public float lineWidth;
 
     [Header("Prefabs")]
     [SerializeField]
@@ -100,6 +109,17 @@ public class WaypointManager : MonoBehaviour {
     [SerializeField]
     private Sprite chargingSprite;
 
+    [Space(10)]
+    [Header("Line Renderer Settings")]
+    [SerializeField]
+    private Color32 unselectedLineColor;
+    [SerializeField]
+    private Color32 selectedLineColor;
+    [SerializeField]
+    private float lineWidth;
+    [SerializeField]
+    public Material lineMaterial;
+
     [Space(5)]
     [Header("Dependencies")]
     [SerializeField]
@@ -125,7 +145,10 @@ public class WaypointManager : MonoBehaviour {
     private Dictionary<WaypointBridge, LineRenderer> waypointLines;
     private Dictionary<(ResourceManager.ResourceType, int), List<Waypoint>> rememberedPaths;
     private Dictionary<ResourceManager.ResourceType, List<int>> rememberedPathsKeys;
+    private Dictionary<WaypointBridge, int> numTravelingOnLine;
     private int numChargingWaypoints;
+    private bool spawned;
+    private bool enable = false;
 
     #endregion
 
@@ -137,6 +160,7 @@ public class WaypointManager : MonoBehaviour {
         waypointLines = new Dictionary<WaypointBridge, LineRenderer>();
         rememberedPaths = new Dictionary<(ResourceManager.ResourceType, int), List<Waypoint>>();
         rememberedPathsKeys = new Dictionary<ResourceManager.ResourceType, List<int>>();
+        numTravelingOnLine = new Dictionary<WaypointBridge, int>();
         bridgeSet = new HashSet<WaypointBridge>();
 
         allWaypoints = new List<Waypoint>();
@@ -162,19 +186,35 @@ public class WaypointManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        Debug.Log("Spawning");
-        SpawnAllOriginalWaypoints();
-        Debug.Log("Num waypoint: " + allWaypoints.Count);
-        Debug.Log("Minimum");
-        EnsureMinimumChargingPoints();
-        Debug.Log("Connections");
-        ConnectAllWaypoints();
-        Debug.Log("Rocks");
-        DeleteConnectionsThroughRocks();
-        Debug.Log("Delete");
-        DeleteUnconnectedWaypoints();
-        Debug.Log("Second Connection");
-        //EnsureMinimumConnections();
+
+    }
+
+    private void Update()
+    {
+        if (!spawned)
+        {
+            spawned = true;
+            SpawnAllOriginalWaypoints();
+            Debug.Log("Num waypoints: " + allWaypoints.Count);
+            EnsureMinimumChargingPoints();
+            ConnectAllWaypoints();
+            DeleteConnectionsThroughRocks();
+            DeleteUnconnectedWaypoints();
+            //EnsureMinimumConnections();
+        }
+
+        /*if (enable == false)
+        {
+            enable = true;
+            List<Waypoint> path = null;
+            int random = 0;
+            for (int i = 0; i < 6; i++)
+            {
+                random = Random.Range(0, allWaypoints.Count - 1);
+                path = ReturnToHome(allWaypoints[random]);
+                SelectLines(path);
+            }
+        }*/
     }
 
     #endregion
@@ -469,11 +509,14 @@ public class WaypointManager : MonoBehaviour {
         newLine.material = lineMaterial;
         newLine.startWidth = lineWidth;
         newLine.endWidth = lineWidth;
+        newLine.startColor = unselectedLineColor;
+        newLine.endColor = unselectedLineColor;
         newLine.numCapVertices = 5;
         newLine.SetPosition(0, waypoint1.ReturnWaypointGameObject().transform.position);
         newLine.SetPosition(1, waypoint2.ReturnWaypointGameObject().transform.position);
         //newLine.sortingOrder = -1;
         waypointLines.Add(newBridge, newLine);
+        numTravelingOnLine.Add(newBridge, 0);
     }
 
     // Spawns all the original waypoints to start the sim
@@ -590,66 +633,84 @@ public class WaypointManager : MonoBehaviour {
 
     private List<Waypoint> Dijkstra(Waypoint start, Waypoint target)
     {
+        if (start == target)
+        {
+            List<Waypoint> list = new List<Waypoint>();
+            list.Add(start);
+            return list;
+        }
+
         // Initalize
-        Dictionary<Waypoint, List<Waypoint>> shortestPath = new Dictionary<Waypoint, List<Waypoint>>();
+        Dictionary<Waypoint, List<Waypoint>> officalShortestPath = new Dictionary<Waypoint, List<Waypoint>>();
+        Dictionary<Waypoint, List<Waypoint>> currentShortestPath = new Dictionary<Waypoint, List<Waypoint>>();
         Dictionary<Waypoint, float> distancePath = new Dictionary<Waypoint, float>();
-        List<Waypoint> unvisited = new List<Waypoint>();
-        int totalWaypoints = allWaypoints.Count;
         foreach (Waypoint waypoint in allWaypoints)
         {
             distancePath.Add(waypoint, float.MaxValue);
         }
         distancePath[start] = 0;
-        List<Waypoint> currentList = new List<Waypoint>();
-        currentList.Add(start);
-        shortestPath.Add(start, currentList);
+        currentShortestPath.Add(start, new List<Waypoint>());
 
-        // Start
-        Waypoint current = start;
-        while (shortestPath.Count != totalWaypoints)
+        // Find shortest path
+        while (!officalShortestPath.ContainsKey(target))
         {
+            // Get which waypoint to update
+            // We get the one with the current shorest distance
+            Waypoint current = null;
+            float minDistance = int.MaxValue;
+            foreach (Waypoint waypoint in allWaypoints)
+            {
+                if (minDistance > distancePath[waypoint] && !officalShortestPath.ContainsKey(waypoint))
+                {
+                    current = waypoint;
+                    minDistance = distancePath[waypoint];
+                }
+            }
+            // Update this waypoint that we've determined it's shortest path
+            List<Waypoint> officalList = new List<Waypoint>();
+            foreach (Waypoint waypoint in currentShortestPath[current])
+            {
+                officalList.Add(waypoint);
+            }
+            officalList.Add(current);
+            officalShortestPath.Add(current, officalList);
+
+            // Update distance with it's neighbors
             List<Waypoint> connections = current.GetConnectedWaypoints();
             foreach(Waypoint connection in connections)
             {
-                if (shortestPath.ContainsKey(connection))
+                // Don't update if we already visited it
+                if (officalShortestPath.ContainsKey(connection))
                 {
-                    float distanceBetween = Vector2.Distance(current.ReturnWaypointTransform().position, connection.ReturnWaypointTransform().position);
-                    float totalDistance = distanceBetween + distancePath[connection];
+                    continue;
+                }
+                float distanceBetween = Vector2.Distance(current.ReturnWaypointTransform().position, connection.ReturnWaypointTransform().position);
+                float totalDistance =  distanceBetween + distancePath[current];
 
-                    foreach(Waypoint connection2 in connections)
+                // If the distance is less than what we've seen previously, use this path
+                if (totalDistance < distancePath[connection])
+                {
+                    distancePath[connection] = totalDistance;
+
+                    List<Waypoint> newList = new List<Waypoint>();
+                    foreach (Waypoint waypointToAdd in officalShortestPath[current])
                     {
-                        if (connection == connection2)
-                        {
-                            continue;
-                        }
+                        newList.Add(waypointToAdd);
+                    }
 
-                        float distanceBetween2 = Vector2.Distance(current.ReturnWaypointTransform().position, connection2.ReturnWaypointTransform().position);
-                        float totalDistance2 = distanceBetween2 + distancePath[connection2];
-
-                        if (totalDistance < totalDistance2)
-                        {
-                            List<Waypoint> newList = new List<Waypoint>();
-                            foreach (Waypoint waypointToAdd in shortestPath[connection])
-                            {
-                                newList.Add(waypointToAdd);
-                            }
-                            newList.Add(current);
-
-                            shortestPath.Add(current, newList);
-                            distancePath[current] = totalDistance;
-                        }
+                    if (currentShortestPath.ContainsKey(connection))
+                    {
+                        currentShortestPath[connection] = newList;
+                    }
+                    else
+                    {
+                        currentShortestPath.Add(connection, newList);
                     }
                 }
-                else
-                {
-                    unvisited.Add(connection);
-                }
             }
-            current = unvisited[0];
-            unvisited.Remove(current);
         }
 
-        return shortestPath[target];
+        return officalShortestPath[target];
     }
 
     #endregion
@@ -660,6 +721,23 @@ public class WaypointManager : MonoBehaviour {
     public List<Waypoint> ReturnToHome(Waypoint start)
     {
         return Dijkstra(start, homeWaypoints[0]);
+    }
+
+    public Waypoint ReturnClosestWaypoint(Vector2 position)
+    {
+        float currentDistance = int.MaxValue;
+        Waypoint currentWaypoint = null;
+
+        foreach (Waypoint waypoint in allWaypoints)
+        {
+            if (Vector2.Distance(waypoint.ReturnWaypointTransform().position, position) < currentDistance)
+            {
+                currentDistance = Vector2.Distance(waypoint.ReturnWaypointTransform().position, position);
+                currentWaypoint = waypoint;
+            }
+        }
+
+        return currentWaypoint;
     }
 
     public List<Waypoint> PathToWaypoint(Waypoint start, Waypoint end)
@@ -760,6 +838,72 @@ public class WaypointManager : MonoBehaviour {
             homes.Add(home.transform);
         }
         return homes;
+    }
+
+    public void SelectLines(List<Waypoint> list)
+    {
+        int listLength = list.Count;
+
+        for (int i = 0; i < listLength - 1; i++)
+        {
+            WaypointBridge currentBridge = null;
+            foreach (WaypointBridge bridge in bridgeSet)
+            {
+                if (bridge.Contains(list[i], list[i + 1]))
+                {
+                    currentBridge = bridge;
+                    break;
+                }
+            }
+
+            waypointLines[currentBridge].startColor = selectedLineColor;
+            waypointLines[currentBridge].endColor = selectedLineColor;
+            waypointLines[currentBridge].sortingOrder = 1;
+            numTravelingOnLine[currentBridge] += 1;
+        }
+    }
+
+    public void UnselectLines(List<Waypoint> list)
+    {
+        int listLength = list.Count;
+
+        for (int i = 0; i < listLength - 2; i++)
+        {
+            WaypointBridge currentBridge = null;
+            foreach (WaypointBridge bridge in bridgeSet)
+            {
+                if (bridge.Contains(list[i], list[i + 1]))
+                {
+                    currentBridge = bridge;
+                    break;
+                }
+            }
+
+            numTravelingOnLine[currentBridge] -= 1;
+
+            if (numTravelingOnLine[currentBridge] == 0)
+            {
+                waypointLines[currentBridge].startColor = unselectedLineColor;
+                waypointLines[currentBridge].endColor = unselectedLineColor;
+                waypointLines[currentBridge].sortingOrder = 0;
+            }
+        }
+    }
+
+    public void EnableAllLines()
+    {
+        foreach (WaypointBridge bridge in bridgeSet)
+        {
+            waypointLines[bridge].enabled = true;
+        }
+    }
+
+    public void DisableAllLines()
+    {
+        foreach (WaypointBridge bridge in bridgeSet)
+        {
+            waypointLines[bridge].enabled = false;
+        }
     }
 
     #endregion
