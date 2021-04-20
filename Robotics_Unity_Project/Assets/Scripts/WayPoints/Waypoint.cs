@@ -74,6 +74,12 @@ public class Waypoint : MonoBehaviour {
         return attachedGameObject;
     }
 
+    // Returns the transform
+    public Transform ReturnWaypointTransform()
+    {
+        return attachedGameObject.transform;
+    }
+
     // Assigns the sprite
     public void AssignSprite(Sprite sprite)
     {

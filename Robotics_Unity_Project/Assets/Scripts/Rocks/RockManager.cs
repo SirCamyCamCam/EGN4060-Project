@@ -23,9 +23,9 @@ public class RockManager : MonoBehaviour
     [SerializeField]
     private float minDistanceBetweenRocks;
     [SerializeField]
-    private float minRockSize;
+    private float minDistanceFromHome;
     [SerializeField]
-    private float maxRockSize;
+    private AnimationCurve rockSizeCurve;
     [SerializeField]
     private int xBorderMagnitude;
     [SerializeField]
@@ -93,6 +93,16 @@ public class RockManager : MonoBehaviour
                     }
                 }
 
+                List<Transform> homes = WaypointManager.main.GetHomeTransforms();
+                foreach (Transform home in homes)
+                {
+                    if (Vector3.Distance(home.position, spawnPoint) <= minDistanceFromHome)
+                    {
+                        legalPoint = false;
+                        break;
+                    }
+                }
+
                 if (spawnAttempt == maxSpawnAttempts)
                 {
                     return;
@@ -100,7 +110,8 @@ public class RockManager : MonoBehaviour
             }
 
             int typeToSpawn = Random.Range(1, 4);
-            float rockScale = Random.Range(minRockSize, maxRockSize);
+            float rockScale = Random.value;
+            rockScale = rockSizeCurve.Evaluate(rockScale);
             float rockRotation = Random.Range(0, 359);
 
             switch (typeToSpawn)

@@ -107,7 +107,7 @@ public class Robot : MonoBehaviour {
         waypointPath = waypointList;
         AssignRobotState(RobotState.MOVING);
         AssignTargetWaypoint(waypointPath[0]);
-        currentWaypoint = 0;
+        //currentWaypoint = 0;
     }
     public GameObject ReturnCurrWaypoint() 
     {
