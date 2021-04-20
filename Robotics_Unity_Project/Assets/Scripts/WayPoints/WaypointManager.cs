@@ -150,6 +150,8 @@ public class WaypointManager : MonoBehaviour {
     private bool spawned;
     private bool enable = false;
 
+    private Queue<ResourceManager.ResourceType> resourceQueue;
+
     #endregion
 
     #region Monobehaviors
@@ -200,7 +202,6 @@ public class WaypointManager : MonoBehaviour {
             ConnectAllWaypoints();
             DeleteConnectionsThroughRocks();
             DeleteUnconnectedWaypoints();
-            //EnsureMinimumConnections();
         }
 
         /*if (enable == false)
@@ -514,7 +515,6 @@ public class WaypointManager : MonoBehaviour {
         newLine.numCapVertices = 5;
         newLine.SetPosition(0, waypoint1.ReturnWaypointGameObject().transform.position);
         newLine.SetPosition(1, waypoint2.ReturnWaypointGameObject().transform.position);
-        //newLine.sortingOrder = -1;
         waypointLines.Add(newBridge, newLine);
         numTravelingOnLine.Add(newBridge, 0);
     }

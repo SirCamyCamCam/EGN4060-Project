@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------
-// Coloniant - Fade Transition                          4/03/2020
+// MoonSim - Fade Transition                            4/20/2021
 // Author(s): Cameron Carstens
 // Contact: cameroncarstens@knights.ucf.edu
 // --------------------------------------------------------------

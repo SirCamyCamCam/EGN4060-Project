@@ -39,5 +39,10 @@ public class Rock : MonoBehaviour
         transform.eulerAngles = rot;
     }
 
+    public Transform ReturnRockTransform()
+    {
+        return rockTransform;
+    }
+
     #endregion
 }

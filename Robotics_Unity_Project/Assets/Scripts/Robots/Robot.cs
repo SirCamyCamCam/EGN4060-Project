@@ -1,162 +1,545 @@
+﻿// --------------------------------------------------------------
+// MoonSim - WaypointManager                          4/20/2021
+// Author(s): Cameron Carstens
+// Contact: cameroncarstens@knights.ucf.edu
+// --------------------------------------------------------------
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class Robot : MonoBehaviour
+{
 
-public class Robot : MonoBehaviour {
     #region enum
 
     public enum RobotState
     {
-        LOCATE, GATHER, RETURN, IDLE, DEADBATTERY, CHARGING, DESTROYED,MOVING
+        IDLE,
+        DEADBATTERY,
+        CHARGING,
+        SEARCH,
+        TRAVEL,
+        COLLECT
+    };
 
-    };
-    public enum RobotType
+    public enum RobotGoal
     {
-         COLLECTOR,UNASSIGNED
-    };
+        RESOURSE,
+        CHARGE,
+        NONE
+    }
 
     #endregion
 
     #region Inspector Fields
 
+    [Header("Robot Setting")]
+    [SerializeField]
+    private float nearbyRobotWeight;
+
+    [Space(15)]
+    [Header("Battery Settings")]
+    [SerializeField]
+    private float drainRate;
+    [SerializeField]
+    private float drainTime;
+    [SerializeField]
+    private float chargeRate;
+    [SerializeField]
+    private float chargeTime;
+    [SerializeField]
+    private float critialBattery;
+
+    [Space(15)]
+    [Header("Travel Setting")]
+    [SerializeField]
+    private float travelSwitchDistance;
+    [SerializeField]
+    private float travelNoise;
+    [SerializeField]
+    private float travelSpeed;
+    [SerializeField]
+    private float travelRotationSpeed;
+
+    [Space(15)]
+    [Header("Search Settings")]
+    [SerializeField]
+    private float searchSwitchDistance;
+    [SerializeField]
+    private float searchNoise;
+    [SerializeField]
+    private float searchSpeed;
+    [SerializeField]
+    private float searchRotationSpeed;
+    [SerializeField]
+    private float nearbyRockWeight;
+
+    [Space(15)]
+    [Header("Idle Settings")]
+    [SerializeField]
+    private float idleDistance;
+    [SerializeField]
+    private float idleSpeed;
+    [SerializeField]
+    private float idleRotationSpeed;
+    [SerializeField]
+    private float idleNoise;
+
+    [Space(15)]
+    [Header("Dependencies")]
+    [SerializeField]
+    private GameObject robotGameObject;
+    [SerializeField]
+    private Transform robotTransform;
+
     #endregion
 
     #region RunTime Fields
-    // Robot fields
-    private RobotState robotState;
-    public RobotType robotType;
 
-    // World relation fields
-    private GameObject prevWaypoint;
-    private GameObject nextWaypoint;
-    private GameObject targetWaypoint;
-    private List<GameObject> waypointPath;
-    private int currWaypoint;
-    private float currSpeed;
-    private int batteryConsumptionRate;
-    private int batteryChargeRate;
-    // Noise  --Did we decide on adding this?
-    private float xDir;
-    private float yDir;
-    // Idle Actions
-    // Locate actions
-    // Gather actions
+    private RobotState robotState;
+    private RobotGoal robotGoal;
+    private ResourceManager.ResourceType typeToGet;
+
+    private Waypoint targetWaypoint;
+    private Waypoint prevWaypoint;
+    private Resource targetResource;
+    private List<Waypoint> waypointPath;
+
+    // Noise
+    private float xDirection;
+    private float yDirection;
+    private bool isReturningToWaypoint;
+
+    private float battery;
+    private Coroutine drainBattery;
+    private Coroutine chargeBattery;
+
+    private List<Transform> nearbyRobots;
+    private List<Transform> nearbyRocks;
+
     #endregion
 
     #region Monobehaviors
-    
-    private void Awake() // Called during initialization
-    { 
-        robotState = RobotState.IDLE;
-    }
-    // Initialization
-    void Start() 
+
+    private void Awake()
     {
-        switch(robotType)
+        robotState = RobotState.IDLE;
+        robotGoal = RobotGoal.NONE;
+        nearbyRobots = new List<Transform>();
+    }
+
+    // Initialization
+    void Start()
+    {
+        battery = 1;
+        drainBattery = StartCoroutine(DrainBattery());
+    }
+
+    void Update()
+    {
+        DetermineGoal();
+        DetermineAction();
+        CheckBatteryLevel();
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private void DetermineGoal()
+    {
+        // Traveling
+        if (robotState == RobotState.TRAVEL)
         {
-            case RobotType.COLLECTOR:
-                // Add to collector count
-                break;
-            case RobotType.UNASSIGNED:
-                // Add to unassigned
-                break;
-
-            default:
-                Debug.LogError("Undefined robot type in Start()");
-                break;                
-
+            if (waypointPath != null && waypointPath.Count != 0 && targetWaypoint == null)
+            {
+                GetNextTargetWaypoint();
+            }
+            if (targetWaypoint != null)
+            {
+                if (Vector2.Distance(robotTransform.position, targetWaypoint.ReturnWaypointTransform().position) < travelSwitchDistance)
+                {
+                    GetNextTargetWaypoint();
+                }
+            }
+            else if (robotGoal == RobotGoal.RESOURSE && prevWaypoint.ReturnWaypointType() != WaypointManager.WaypointType.HOME)
+            {
+                targetResource = ResourceManager.main.ReturnNearestResource(typeToGet, robotTransform.position);
+                robotState = RobotState.COLLECT;
+            }
+            else if (robotGoal == RobotGoal.RESOURSE && prevWaypoint.ReturnWaypointType() == WaypointManager.WaypointType.HOME)
+            {
+                // Add to resource manager
+            }
+            else if (robotGoal == RobotGoal.CHARGE)
+            {
+                robotState = RobotState.CHARGING;
+            }
+            else if (robotGoal == RobotGoal.NONE)
+            {
+                robotState = RobotState.IDLE;
+            }
+        }
+        // Collecting
+        else if (robotState == RobotState.COLLECT)
+        {
+            if (Vector2.Distance(robotTransform.position, targetResource.ReturnWaypointTransform().position) < searchSwitchDistance)
+            {
+                PickUpResource();
+            }
+        }
+        else if (robotState == RobotState.CHARGING)
+        {
+            if (CheckIfBatteryFull())
+            {
+                robotState = RobotState.IDLE;
+            }
         }
     }
 
-   void Update() // Called once per frame 
+    private void DetermineAction()
     {
-        if (targetWaypoint == null)
+        if (robotState == RobotState.IDLE)
+        {
+            IdleRobot();
+        }
+        else if (robotState == RobotState.DEADBATTERY)
+        {
+            DeadBattery();
+        }
+        else if (robotState == RobotState.CHARGING)
+        {
+            if (drainBattery != null)
+            {
+                StopCoroutine(drainBattery);
+            }
+            else if (chargeBattery == null)
+            {
+                chargeBattery = StartCoroutine(ChargeBattery());
+            }
+            ChargeRobot();
+        }
+        else if (robotState == RobotState.SEARCH)
+        {
+            SearchForResource();
+        }
+        else if (robotState == RobotState.TRAVEL)
+        {
+            TravelToWaypoint();
+        }
+        else if (robotState == RobotState.COLLECT)
+        {
+            TravelToResource();
+        }
+    }
+
+    private bool CheckIfBatteryFull()
+    {
+        if (battery == 1)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private void AssignTargetWaypoint(Waypoint target)
+    {
+        prevWaypoint = targetWaypoint;
+        targetWaypoint = target;
+    }
+
+    private void IdleRobot()
+    {
+        // Determine whether to turn around
+        if (Vector2.Distance(robotTransform.position, targetWaypoint.transform.position) > idleDistance && isReturningToWaypoint == false)
+        {
+            isReturningToWaypoint = true;
+        }
+        else if (Vector2.Distance(robotTransform.position, targetWaypoint.transform.position) < idleDistance - 1 && isReturningToWaypoint == true)
+        {
+            isReturningToWaypoint = false;
+        }
+
+        // Noise stuff
+        xDirection += 1 * Random.value;
+        yDirection += 1 * Random.value;
+
+        if (xDirection == int.MaxValue || yDirection == int.MaxValue)
+        {
+            xDirection = 0;
+            yDirection = 0;
+        }
+
+        if (isReturningToWaypoint == false)
+        {
+            // Apply noise
+            float randomVal = Mathf.PerlinNoise(
+                xDirection * idleNoise,
+                yDirection * idleNoise);
+            float angle = Mathf.Lerp(-10, 10, randomVal);
+            robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z + angle);
+        }
+        else
+        {
+            // Turn to waypoint
+            Vector3 direction = (targetWaypoint.transform.position - robotTransform.position).normalized;
+            Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.back);
+            robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+            robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z);
+
+        }
+        // Go forward
+        robotTransform.position += robotTransform.up * Time.deltaTime * idleSpeed;
+    }
+
+    private void ChargeRobot()
+    {
+        // Should it do stuff?
+    }
+
+    private void TravelToWaypoint()
+    {
+        if (targetWaypoint != null)
         {
             return;
         }
 
-        if (robotState == RobotState.IDLE)
+        // Face direction of target waypoint
+        Vector3 direction = (targetWaypoint.ReturnWaypointTransform().position - robotTransform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.back);
+        robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * travelRotationSpeed);
+        // Noise
+        xDirection += 1 * Random.value;
+        yDirection += 1 * Random.value;
+
+        if (xDirection == int.MaxValue || yDirection == int.MaxValue)
         {
-            //IdleRobot();
+            xDirection = 0;
+            yDirection = 0;
         }
-        else if (robotState == RobotState.MOVING)
+
+        float randomVal = Mathf.PerlinNoise(
+                xDirection * travelNoise,
+                yDirection * travelNoise);
+        float angle = Mathf.Lerp(-2, 2, randomVal);
+        robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z + angle);
+
+        robotTransform.position += robotTransform.up * Time.deltaTime * travelSpeed;
+    }
+
+    private void TravelToResource()
+    {
+        if (targetResource == null)
         {
-            //MovingRobot();
-            //CheckWaypointDistance();
+            return;
         }
+
+        // Face direction of target waypoint
+        Vector3 direction = (targetResource.ReturnResourceTransform().position - robotTransform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.back);
+        robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * travelRotationSpeed);
+        // Noise
+        xDirection += 1 * Random.value;
+        yDirection += 1 * Random.value;
+
+        if (xDirection == int.MaxValue || yDirection == int.MaxValue)
+        {
+            xDirection = 0;
+            yDirection = 0;
+        }
+
+        float randomVal = Mathf.PerlinNoise(
+                xDirection * travelNoise,
+                yDirection * travelNoise);
+        float angle = Mathf.Lerp(-2, 2, randomVal);
+        robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z + angle);
+
+        robotTransform.position += robotTransform.up * Time.deltaTime * travelSpeed;
+    }
+
+    private void GetNextTargetWaypoint()
+    {
+        prevWaypoint = targetWaypoint;
+
+        if (waypointPath.Count == 0)
+        {
+            targetWaypoint = null;
+            return;
+        }
+
+        targetWaypoint = waypointPath[0];
+        waypointPath.Remove(targetWaypoint);
+        if (prevWaypoint != null)
+        {
+            List<Waypoint> linesToUnselect = new List<Waypoint>();
+            linesToUnselect.Add(targetWaypoint);
+            linesToUnselect.Add(prevWaypoint);
+            WaypointManager.main.UnselectLines(linesToUnselect);
+        }
+    }
+
+    private void CheckBatteryLevel()
+    {
+        if (battery < critialBattery)
+        {
+            // Tell RobotManager
+        }
+    }
+
+    private void SearchForResource()
+    {
+        // Add all inputs together
+        Vector3 robotDirection = robotTransform.right;
+        Vector3 nearbyRobotDirection = new Vector3(0, 0, 0);
+        Vector3 nearbyRockDirection = new Vector3(0, 0, 0);
+
+        foreach (Transform robot in nearbyRobots)
+        {
+            nearbyRobotDirection += (robot.position - robotTransform.position).normalized * nearbyRockWeight;
+        }
+        foreach (Transform rock in nearbyRocks)
+        {
+            nearbyRockDirection += (rock.position - robotTransform.position).normalized * nearbyRobotWeight;
+        }
+        Vector3 combinedDirection = (nearbyRobotDirection + nearbyRockDirection).normalized;
+        Vector3 direction = (combinedDirection - robotTransform.position).normalized;
+    
+        Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.back);
+        robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * searchRotationSpeed);
+        // Noise
+        xDirection += 1 * Random.value;
+        yDirection += 1 * Random.value;
+
+        if (xDirection == int.MaxValue || yDirection == int.MaxValue)
+        {
+            xDirection = 0;
+            yDirection = 0;
+        }
+
+        float randomVal = Mathf.PerlinNoise( xDirection * travelNoise, yDirection * travelNoise);
+        float angle = Mathf.Lerp(-2, 2, randomVal);
+        robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z + angle);
+
+        robotTransform.position += robotTransform.up * Time.deltaTime * searchSpeed;
+    }
+    
+    private void DeadBattery()
+    {
 
     }
 
+    private void PickUpResource()
+    {
+        robotState = RobotState.TRAVEL;
+        Waypoint nearest = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
+        List<Waypoint> list = WaypointManager.main.ReturnToHome(nearest);
+        AssignWaypointList(list);
+        WaypointManager.main.SelectLines(list);
+    }
 
     #endregion
 
     #region Public Methods
-    // Waypoint related methods
-    public void AssignTargetWaypoint(GameObject target) 
-    {
-        prevWaypoint = targetWaypoint;
-        targetWaypoint = target;
-        if (prevWaypoint != null && targetWaypoint.GetComponent<Waypoint>() != null && prevWaypoint.GetComponent<Waypoint>() != null)
-        {
-            // Robot Moves
-        }
-    }
-    public void AssignWaypointList(List<GameObject> waypointList) 
+
+    public void AssignWaypointList(List<Waypoint> waypointList)
     {
         waypointPath = waypointList;
-        AssignRobotState(RobotState.MOVING);
-        AssignTargetWaypoint(waypointPath[0]);
-        //currentWaypoint = 0;
-    }
-    public GameObject ReturnCurrWaypoint() 
-    {
-        return null;
-        //return currWaypoint;
-    }
-    public GameObject ReturnTargetWaypoint() 
-    {
-        return targetWaypoint;
     }
 
-    // Robot state methods
-    public RobotState GetRobotState() 
+    public RobotState GetRobotState()
     {
         return robotState;
+    }
+
+    public RobotGoal GetRobotGoal()
+    {
+        return robotGoal;
+    }
+
+    public void AssignRobotGoal(RobotGoal newGoal)
+    {
+        robotGoal = newGoal;
     }
 
     public void AssignRobotState(RobotState newState)
     {
         robotState = newState;
     }
-    // Robot Type methods
-    public RobotType GetRobotType()
-    {
-        return robotType;
-    } 
 
-    public void AssignRobotType(RobotType newType)
+    public void AssignTargetResource(ResourceManager.ResourceType type)
     {
-        robotType = newType;
+        targetResource = type;
     }
+
+    public void AddtoNearbyRobots(Transform robot)
+    {
+        nearbyRobots.Add(robot);
+    }
+
+    public void RemoveNearbyRobots(Transform robot)
+    {
+        nearbyRobots.Remove(robot);
+    }
+
+    public void AddToNearbyRocks(Transform rock)
+    {
+        nearbyRocks.Add(rock);
+    }
+
+    public void RemoveNearbyRocks(Transform rock)
+    {
+        nearbyRocks.Remove(rock);
+    }
+
+    public void FoundResource(Transform resourceTransform)
+    {
+        Resource resource = resourceTransform.GetComponent<Resource>();
+
+        if (resource.ReturnResourceType() == targetResource)
+        {
+            resource.RemoveUnit();
+            robotState = RobotState.TRAVEL;
+            Waypoint closeWaypoint = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
+            List<Waypoint> list = WaypointManager.main.ReturnToHome(closeWaypoint);
+            AssignWaypointList(list);
+            WaypointManager.main.AddtoRememberedPaths(list, resource.ReturnResourceType());
+            WaypointManager.main.SelectLines(list);
+        }
+    }
+
     #endregion
 
+    #region Coroutines
 
-    #region Private Methods
-    // RobotLocate sets the robot to randomly wander to locate resources
-    // -- Should this contain a random locate & a take by list locate?
-    private void RobotLocate(){}
-    // RobotGather sets the robot to Gather a resource
-    private void RobotGather(){}
-    // RobotReturn sets the robot to return to the start point
-    private void RobotReturn(){}
-    // RobotIdle sets the robot to idle
-    private void RobotIdle(){}
-    // RobotCharge sets the robot to charge its battery
-    private void RobotCharge(){} 
+    private IEnumerator DrainBattery()
+    {
+        yield return new WaitForSeconds(drainTime);
+
+        battery -= drainTime;
+
+        if (battery < 0)
+        {
+            battery = 0;
+        }
+
+        drainBattery = StartCoroutine(DrainBattery());
+    }
+
+    private IEnumerator ChargeBattery()
+    {
+        yield return new WaitForSeconds(chargeTime);
+
+        battery += chargeRate;
+
+        if (battery > 1)
+        {
+            battery = 1;
+        }
+
+        chargeBattery = StartCoroutine(ChargeBattery());
+    }
+
     #endregion
-    
-
 }
-
 

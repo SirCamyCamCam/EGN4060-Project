@@ -20,7 +20,7 @@ public class ResourceManager : MonoBehaviour
 
     public enum ResourceType
     {
-
+        NONE
     }
 
     #endregion
@@ -80,7 +80,6 @@ public class ResourceManager : MonoBehaviour
 
     #region Public Methods
 
-    // Stuff
 
     #endregion
 
