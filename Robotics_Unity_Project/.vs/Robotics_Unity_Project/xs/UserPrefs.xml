@@ -1,0 +1,21 @@
+﻿<Properties StartupConfiguration="{364370A9-FC21-ED7B-6355-5E65EA7E9594}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Robots/RobotManager.cs">
+    <Files>
+      <File FileName="Assets/Scripts/Robots/RobotManager.cs" Line="95" Column="1" />
+      <File FileName="Assets/Scripts/Robots/Robot.cs" Line="153" Column="36" />
+      <File FileName="Assets/Scripts/Robots/UnassignedRobot.cs" Line="19" Column="1" />
+      <File FileName="Assets/Scripts/Resources/ResourceManager.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Rocks/RockManager.cs" Line="1" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp-Editor PreferredExecutionTarget="a037099e-c218-4486-9e50-b96105a93f54" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <DisabledProjects>
+    <String>Assembly-CSharp.csproj</String>
+  </DisabledProjects>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

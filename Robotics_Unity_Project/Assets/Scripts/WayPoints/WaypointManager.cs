@@ -739,6 +739,11 @@ public class WaypointManager : MonoBehaviour {
 
         return currentWaypoint;
     }
+    //temp
+    public GameObject ReturnHomeGameObject()
+    {
+        return homeWaypoints[0].gameObject;
+    }
 
     public List<Waypoint> PathToWaypoint(Waypoint start, Waypoint end)
     {
