@@ -21,6 +21,12 @@ public class Resource : MonoBehaviour
 
     #endregion
 
+    #region Run-Time Fields
+
+    private ResourceManager.ResourceType type;
+
+    #endregion
+
     #region Monobehaviors 
 
 
@@ -28,9 +34,7 @@ public class Resource : MonoBehaviour
     #endregion
 
     #region Public Methods
-    public Resource ReturnNearestResource(ResourceManager.ResourceType type, Vector2 position) {
-        return null;// for this type loop through every resource and find cloest to the position given
-    }
+
     public Transform ReturnResourceTransform() 
     {
         return resourceTransform;
@@ -47,6 +51,21 @@ public class Resource : MonoBehaviour
         Vector3 rssRotation = new Vector3(0, 0, degrees);
 
         transform.eulerAngles = rssRotation;
+    }
+
+    public ResourceManager.ResourceType ReturnResourceType()
+    {
+        return type;
+    }
+
+    public void AssignResourceType(ResourceManager.ResourceType newType)
+    {
+        type = newType;
+    }
+
+    public void RemoveUnit()
+    {
+        // Remove 1 of however many iron/gold/whatever is at the resource
     }
 
     #endregion

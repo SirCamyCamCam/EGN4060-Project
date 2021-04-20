@@ -68,6 +68,7 @@
     <Compile Include="Assets\DragCamera2D\Scripts\Runtime\Dc2dUtils.cs" />
     <Compile Include="Assets\DragCamera2D\Scripts\Runtime\Dc2dWaypoint.cs" />
     <Compile Include="Assets\DragCamera2D\Scripts\Runtime\DragCamera2D.cs" />
+    <Compile Include="Assets\Scripts\Resources\Resource.cs" />
     <Compile Include="Assets\Scripts\Resources\ResourceManager.cs" />
     <Compile Include="Assets\Scripts\Robots\Detector.cs" />
     <Compile Include="Assets\Scripts\Robots\Robot.cs" />

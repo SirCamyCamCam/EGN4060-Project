@@ -278,6 +278,7 @@ public class ResourceManager : MonoBehaviour
                     Resource newIronResource = newIron.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
                     newIronResource.SetRssSize(rssScale); // replace with newiron
                     ironList.Add(newIronResource);
+                    newIronResource.AssignResourceType(ResourceType.IRON);
                     resourceList.Add(newIronResource);
                     numRssToSpawnIndv[0]--;
                     break;
@@ -286,6 +287,7 @@ public class ResourceManager : MonoBehaviour
                     GameObject newCopper = Instantiate(copperPrefab, spawnPoint, Quaternion.Euler(0, 0, rssRotation), copperParent.transform);
                     Resource newCopperResource = newCopper.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
                     newCopperResource.SetRssSize(rssScale); // replace with newiron
+                    newCopperResource.AssignResourceType(ResourceType.COPPER);
                     copperList.Add(newCopperResource);
                     resourceList.Add(newCopperResource);                                        
                     numRssToSpawnIndv[1]--;
@@ -295,6 +297,7 @@ public class ResourceManager : MonoBehaviour
                     GameObject newGold = Instantiate(goldPrefab, spawnPoint, Quaternion.Euler(0, 0, rssRotation), goldParent.transform);
                     Resource newGoldResource = newGold.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
                     newGoldResource.SetRssSize(rssScale); // replace with newiron
+                    newGoldResource.AssignResourceType(ResourceType.GOLD);
                     goldList.Add(newGoldResource);
                     resourceList.Add(newGoldResource);
                     numRssToSpawnIndv[2]--;
@@ -304,6 +307,7 @@ public class ResourceManager : MonoBehaviour
                     GameObject newTitanium = Instantiate(titaniumPrefab, spawnPoint, Quaternion.Euler(0, 0, rssRotation), titaniumParent.transform);
                     Resource newTitaniumResource = newTitanium.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
                     newTitaniumResource.SetRssSize(rssScale); // replace with newiron
+                    newTitaniumResource.AssignResourceType(ResourceType.TITANIUM);
                     titaniumList.Add(newTitaniumResource);
                     resourceList.Add(newTitaniumResource);
                     numRssToSpawnIndv[3]--;
@@ -401,8 +405,11 @@ public class ResourceManager : MonoBehaviour
                 break;
         }
     }
-   
 
+    public Resource ReturnNearestResource(ResourceManager.ResourceType type, Vector2 position)
+    {
+        return null;// for this type loop through every resource and find cloest to the position given
+    }
 
     #endregion
 

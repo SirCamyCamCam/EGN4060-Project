@@ -184,7 +184,7 @@ public class Robot : MonoBehaviour
         // Collecting
         else if (robotState == RobotState.COLLECT)
         {
-            if (Vector2.Distance(robotTransform.position, targetResource.ReturnWaypointTransform().position) < searchSwitchDistance)
+            if (Vector2.Distance(robotTransform.position, targetResource.ReturnResourceTransform().position) < searchSwitchDistance)
             {
                 PickUpResource();
             }
@@ -285,7 +285,7 @@ public class Robot : MonoBehaviour
             // Turn to waypoint
             Vector3 direction = (targetWaypoint.transform.position - robotTransform.position).normalized;
             Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.back);
-            robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+            robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * idleRotationSpeed);
             robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z);
 
         }
@@ -467,9 +467,14 @@ public class Robot : MonoBehaviour
         robotState = newState;
     }
 
-    public void AssignTargetResource(ResourceManager.ResourceType type)
+    public void AssignTargetResource(Resource resource)
     {
-        targetResource = type;
+        targetResource = resource;
+    }
+
+    public void AssignTargetResourceType(ResourceManager.ResourceType type)
+    {
+        typeToGet = type;
     }
 
     public void AddtoNearbyRobots(Transform robot)
@@ -496,7 +501,7 @@ public class Robot : MonoBehaviour
     {
         Resource resource = resourceTransform.GetComponent<Resource>();
 
-        if (resource.ReturnResourceType() == targetResource)
+        if (resource.ReturnResourceType() == typeToGet)
         {
             resource.RemoveUnit();
             robotState = RobotState.TRAVEL;
