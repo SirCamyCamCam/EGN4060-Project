@@ -123,6 +123,8 @@ public class WaypointManager : MonoBehaviour {
     private List<Transform> homeTransforms;
     private HashSet<WaypointBridge> bridgeSet;
     private Dictionary<WaypointBridge, LineRenderer> waypointLines;
+    private Dictionary<(ResourceManager.ResourceType, int), List<Waypoint>> rememberedPaths;
+    private Dictionary<ResourceManager.ResourceType, List<int>> rememberedPathsKeys;
     private int numChargingWaypoints;
 
     #endregion
@@ -133,6 +135,8 @@ public class WaypointManager : MonoBehaviour {
     {
         main = this;
         waypointLines = new Dictionary<WaypointBridge, LineRenderer>();
+        rememberedPaths = new Dictionary<(ResourceManager.ResourceType, int), List<Waypoint>>();
+        rememberedPathsKeys = new Dictionary<ResourceManager.ResourceType, List<int>>();
         bridgeSet = new HashSet<WaypointBridge>();
 
         allWaypoints = new List<Waypoint>();
@@ -583,79 +587,6 @@ public class WaypointManager : MonoBehaviour {
             itteration += 1f;
         }
     }
-    
-    private List<GameObject> SearchWaypointPathRecursiveType(
-        Waypoint currentWaypoint, 
-        WaypointType waypointTypeToFind, 
-        List<GameObject> list,
-        List<Waypoint> visited)
-    {
-        // Check for base case
-        if (currentWaypoint.ReturnWaypointType() == waypointTypeToFind)
-        {
-            return list;
-        }
-
-        // int i = 0;
-
-        // check for other posibilties
-        foreach (Waypoint w in currentWaypoint.GetConnectedWaypoints())
-        {
-            //Debug.Log(i);
-            //i++;
-            if (visited.Contains(w) == false)
-            {
-                visited.Add(w);
-                list.Add(w.ReturnWaypointGameObject());
-                SearchWaypointPathRecursiveType(w, waypointTypeToFind, list, visited);
-
-                if (list[list.Count - 1].GetComponent<Waypoint>().ReturnWaypointType() == waypointTypeToFind)
-                {
-                    return list;
-                }
-
-                list.Remove(w.ReturnWaypointGameObject());
-            }
-        }
-
-        return list;
-    }
-
-    private List<GameObject> SearchWaypointPathRecursiveTarget(
-        Waypoint currentWaypoint, 
-        Waypoint targetWaypoint, 
-        List<GameObject> list, 
-        List<Waypoint> visited)
-    {
-        // Base Case
-        if (currentWaypoint == targetWaypoint)
-        {
-            return list;
-        }
-
-        // check for other posibilties
-        foreach (Waypoint w in currentWaypoint.GetConnectedWaypoints())
-        {
-            //Debug.Log(i);
-            //i++;
-            if (visited.Contains(w) == false)
-            {
-                visited.Add(w);
-                list.Add(w.ReturnWaypointGameObject());
-                SearchWaypointPathRecursiveTarget(w, targetWaypoint, list, visited);
-
-                if (list[list.Count - 1].GetComponent<Waypoint>() == targetWaypoint)
-                {
-                    return list;
-                }
-
-                list.Remove(w.ReturnWaypointGameObject());
-            }
-        }
-
-        return list;
-    }
-
 
     private List<Waypoint> Dijkstra(Waypoint start, Waypoint target)
     {
@@ -721,112 +652,80 @@ public class WaypointManager : MonoBehaviour {
         return shortestPath[target];
     }
 
-    private float minDistance(float[] dist, bool[] sptSet)
-    {
-        // Initialize min value
-        float min = float.MaxValue;
-        float min_index = -1;
-
-        for (int v = 0; v < allWaypoints.Count; v++)
-        {
-            if (sptSet[v] == false && dist[v] <= min)
-            {
-                min = dist[v];
-                min_index = v;
-            }
-        }
-
-        return min_index;
-    }
-    private List<GameObject> SearchPathUnknownTarget(Waypoint initalWaypoint, WaypointType waypointTypeToFind)
-    {
-        List<GameObject> path = new List<GameObject>();
-        List<Waypoint> visited = new List<Waypoint>();
-
-        // BFS Style
-
-        /*List<Waypoint> visited = new List<Waypoint>();
-        Queue<Waypoint> q = new Queue<Waypoint>();
-
-        q.Enqueue(initalWaypoint);
-        visited.Add(initalWaypoint);
-
-        while (q.Count != 0)
-        {
-            Waypoint waypoint = q.Dequeue();
-
-            if (waypoint.ReturnWaypointType() == waypointTypeToFind)
-            {
-                path.Add(waypoint.ReturnWaypointGameObject());
-                return path;
-            }
-
-            foreach (Waypoint w in waypoint.connectedWaypoints)
-            {
-                if (!visited.Contains(w))
-                {
-                    visited.Add(w);
-                    q.Enqueue(w);
-                }
-            }
-        }*/
-
-        path.Add(initalWaypoint.ReturnWaypointGameObject());
-        visited.Add(initalWaypoint);
-        path = SearchWaypointPathRecursiveType(initalWaypoint, waypointTypeToFind, path, visited);
-
-        return path;
-    }
-
-    private List<GameObject> SearchPathKnownTarget(Waypoint initalWaypoint, Waypoint targetWaypoint)
-    {
-        List<GameObject> path = new List<GameObject>();
-        List<Waypoint> visited = new List<Waypoint>();
-
-        path.Add(initalWaypoint.ReturnWaypointGameObject());
-        visited.Add(initalWaypoint);
-
-        path = SearchWaypointPathRecursiveTarget(initalWaypoint, targetWaypoint, path, visited);
-
-        return path;
-    }
-
-    private GameObject ReturnTransitionGameObject()
-    {
-        return transitionWaypoints[0].gameObject;
-    }
-
-    private List<Waypoint> ReturnHomeList()
-    {
-        return homeWaypoints;
-    }
-
-    private Waypoint ReturnRandomWaypoint()
-    {
-        int random = Random.Range(0, allWaypoints.Count - 1);
-
-        return allWaypoints[random];
-    }
-
     #endregion
 
     #region Public Methods
 
     // Returns a list of waypoints to follow back home
-    public List<Waypoint> ReturnToHome()
+    public List<Waypoint> ReturnToHome(Waypoint start)
     {
-
-        return null;
+        return Dijkstra(start, homeWaypoints[0]);
     }
 
-    public void AddtoRememberedPaths(Waypoint[] listOfWaypoints, ResourceManager.ResourceType typeAtEndOfPath)
+    public List<Waypoint> PathToWaypoint(Waypoint start, Waypoint end)
     {
+        return Dijkstra(start, end);
+    }
 
+    public List<Waypoint> PathToChargingWaypoint(Waypoint start)
+    {
+        int random = Random.Range(0, chargingWaypoints.Count - 1);
+        if (random < 0)
+        {
+            return null;
+        }
+
+        return Dijkstra(start, chargingWaypoints[random]);
+    }
+
+    public void AddtoRememberedPaths(List<Waypoint> listOfWaypoints, ResourceManager.ResourceType typeAtEndOfPath)
+    {
+        listOfWaypoints.Reverse();
+        List<int> intList = rememberedPathsKeys[typeAtEndOfPath];
+        if (intList == null)
+        {
+            intList = new List<int>();
+        }
+
+        bool validInt = false;
+        int random = 0;
+        while (!validInt)
+        {
+            random = Random.Range(int.MinValue, int.MaxValue);
+            if (!intList.Contains(random))
+            {
+                validInt = true;
+            }
+        }
+        intList.Add(random);
+        rememberedPathsKeys[typeAtEndOfPath] = intList;
+
+        rememberedPaths.Add((typeAtEndOfPath, random), listOfWaypoints);
     }
 
     public List<Waypoint> GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
     {
-        return null;
+        List<int> returnedList = rememberedPathsKeys[rescouceToFind];
+        int random = Random.Range(0, returnedList.Count - 1);
+        if (random < 0)
+        {
+            return null;
+        }
+
+        return rememberedPaths[(rescouceToFind, returnedList[random])];
+    }
+
+    public void RemoveRememberedPath(ResourceManager.ResourceType typeToRemove, List<Waypoint> pathToRemove)
+    {
+        List<int> returnedIntList = rememberedPathsKeys[typeToRemove];
+
+        foreach (int i in returnedIntList)
+        {
+            if (rememberedPaths[(typeToRemove, i)] == pathToRemove)
+            {
+                rememberedPaths.Remove((typeToRemove, i));
+            }
+        }
     }
 
     public Waypoint GetHomeWaypoint()
