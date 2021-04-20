@@ -69,11 +69,13 @@
     <Compile Include="Assets\DragCamera2D\Scripts\Runtime\Dc2dWaypoint.cs" />
     <Compile Include="Assets\DragCamera2D\Scripts\Runtime\DragCamera2D.cs" />
     <Compile Include="Assets\Scripts\Resources\ResourceManager.cs" />
+    <Compile Include="Assets\Scripts\Robots\Detector.cs" />
     <Compile Include="Assets\Scripts\Robots\Robot.cs" />
     <Compile Include="Assets\Scripts\Robots\RobotManager.cs" />
     <Compile Include="Assets\Scripts\Rocks\Rock.cs" />
     <Compile Include="Assets\Scripts\Rocks\RockManager.cs" />
     <Compile Include="Assets\Scripts\SimManager.cs" />
+    <Compile Include="Assets\Scripts\UI\FadeTransition.cs" />
     <Compile Include="Assets\Scripts\WayPoints\Waypoint.cs" />
     <Compile Include="Assets\Scripts\WayPoints\WaypointManager.cs" />
     <Reference Include="Unity.Timeline.Editor">
