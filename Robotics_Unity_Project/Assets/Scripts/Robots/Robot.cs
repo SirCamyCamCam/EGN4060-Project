@@ -273,7 +273,7 @@ public class Robot : MonoBehaviour
         {
             isReturningToWaypoint = true;
         }
-        else if (Vector2.Distance(robotTransform.position, targetWaypoint.ReturnWaypointTransform().position) < idleDistance - 1 && isReturningToWaypoint == true)
+        else if (Vector2.Distance(robotTransform.position, targetWaypoint.ReturnWaypointTransform().position) < idleDistance - 0.1f && isReturningToWaypoint == true)
         {
             isReturningToWaypoint = false;
         }
@@ -301,10 +301,9 @@ public class Robot : MonoBehaviour
         {
             // Turn to waypoint
             Vector3 direction = (targetWaypoint.ReturnWaypointTransform().position - robotTransform.position).normalized;
-            Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.down);
+            Quaternion lookRotation = Quaternion.LookRotation(direction, -Vector3.one);
             robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * idleRotationSpeed);
             robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z);
-
         }
         // Go forward
         robotTransform.position += robotTransform.up * Time.deltaTime * idleSpeed;
