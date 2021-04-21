@@ -11,7 +11,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+// Ask cam which fields empty time and spawn go into
 public class Resource : MonoBehaviour
 {
     #region Inspector Fields
@@ -24,6 +24,12 @@ public class Resource : MonoBehaviour
     #region Run-Time Fields
 
     private ResourceManager.ResourceType type;
+    private int amount;
+    private int emptyTime;
+    private int reqEmptyTime;
+    private float regenChance;
+
+    
 
     #endregion
 
@@ -34,7 +40,18 @@ public class Resource : MonoBehaviour
     #endregion
 
     #region Public Methods
-
+    public void SetAmount()
+    {
+        amount = (int)(Random.value * 10.0);
+    }
+    public void SetReqEmptyTime(int reqEmptyTime)
+    {
+        this.reqEmptyTime = reqEmptyTime;
+    }
+    public void setRegenChance(float regenChance)
+    {
+        this.regenChance = regenChance;
+    }
     public Transform ReturnResourceTransform() 
     {
         return resourceTransform;
@@ -65,8 +82,37 @@ public class Resource : MonoBehaviour
 
     public void RemoveUnit()
     {
+        amount--;
+        if(amount <= 0)
+        {
+            ResourceManager.main.RemoveResource(this);
+        }
         // Remove 1 of however many iron/gold/whatever is at the resource
+    }
+
+    internal bool DoIRegen()
+    {
+        if (emptyTime < reqEmptyTime)
+        {   
+            return false;
+        }
+        else if (regenChance >= Random.value)
+        {
+            return true;
+        }
+        else 
+        {
+            regenChance = regenChance + (float)01;
+            return false;
+        }
+    }
+
+    public void UpdateEmptyTime()
+    {
+        emptyTime++;
     }
 
     #endregion
 }
+
+// Add counter 
