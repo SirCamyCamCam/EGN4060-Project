@@ -411,6 +411,39 @@ public class ResourceManager : MonoBehaviour
         return null;// for this type loop through every resource and find cloest to the position given
     }
 
+    public void RemoveResource(GameObject emptyRss )
+    {
+        Resource rssToRemove = emptyRss.GetComponent<Resource>();
+        ResourceManager.ResourceType rssType = rssToRemove.ReturnResourceType();
+        switch (rssType)
+        {
+            case ResourceType.IRON :
+            {
+                ironList.Remove(rssToRemove);
+                resourceList.Remove(rssToRemove);
+                break;
+            }
+            case ResourceType.COPPER :
+            {
+                copperList.Remove(rssToRemove);
+                resourceList.Remove(rssToRemove);
+                break;
+            }
+            case ResourceType.GOLD :
+            {
+                goldList.Remove(rssToRemove);
+                resourceList.Remove(rssToRemove);
+                break;
+            }
+            case ResourceType.TITANIUM :
+            {
+                titaniumList.Remove(rssToRemove);
+                resourceList.Remove(rssToRemove);
+                break;
+            }
+            
+        }
+    }
     #endregion
 
     #region Coroutines
