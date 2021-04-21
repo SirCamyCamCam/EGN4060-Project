@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2618801533277683020}
   - component: {fileID: 9119945232628612757}
+  - component: {fileID: 611896194600828236}
   m_Layer: 0
   m_Name: Detector
   m_TagString: Untagged
@@ -44,9 +45,22 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.66, y: 0}
-  m_Size: {x: 1.7, y: 1}
-  m_Direction: 1
+  m_Offset: {x: 0, y: 0.66}
+  m_Size: {x: 1, y: 1.7}
+  m_Direction: 0
+--- !u!114 &611896194600828236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618801533277683379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8729502b92dfbeb4ca5e0db003915ed7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  robot: {fileID: 2618801534510681392}
 --- !u!1 &2618801534510681396
 GameObject:
   m_ObjectHideFlags: 0
@@ -143,8 +157,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1.23, y: 0.64}
-  m_Direction: 1
+  m_Size: {x: 0.6, y: 1.28}
+  m_Direction: 0
 --- !u!114 &2618801534510681392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,3 +171,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c98674ed412f89489565f8dcf883fc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  nearbyRobotWeight: 0.2
+  chargeMethod: 1
+  drainRate: 0.01
+  drainTime: 3
+  chargeRate: 0.1
+  chargeTime: 2
+  critialBattery: 0.2
+  travelSwitchDistance: 1
+  travelNoise: 0.1
+  travelSpeed: 1
+  travelRotationSpeed: 1
+  searchSwitchDistance: 1
+  searchNoise: 0.1
+  searchSpeed: 1
+  searchRotationSpeed: 1
+  nearbyRockWeight: 0.1
+  idleDistance: 1
+  idleSpeed: 1
+  idleRotationSpeed: 5
+  idleNoise: 0.1
+  robotGameObject: {fileID: 2618801534510681396}
+  robotTransform: {fileID: 2618801534510681399}

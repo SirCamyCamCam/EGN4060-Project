@@ -143,8 +143,8 @@ public class WaypointManager : MonoBehaviour {
     private List<Transform> homeTransforms;
     private HashSet<WaypointBridge> bridgeSet;
     private Dictionary<WaypointBridge, LineRenderer> waypointLines;
-    private Dictionary<(ResourceManager.ResourceType, int), List<Waypoint>> rememberedPaths;
-    private Dictionary<ResourceManager.ResourceType, List<int>> rememberedPathsKeys;
+    private Dictionary<(ResourceManager.ResourceType, int), Waypoint> rememberedWaypoints;
+    private Dictionary<ResourceManager.ResourceType, List<int>> rememberedWaypointsKeys;
     private Dictionary<WaypointBridge, int> numTravelingOnLine;
     private int numChargingWaypoints;
     private bool spawned;
@@ -160,8 +160,8 @@ public class WaypointManager : MonoBehaviour {
     {
         main = this;
         waypointLines = new Dictionary<WaypointBridge, LineRenderer>();
-        rememberedPaths = new Dictionary<(ResourceManager.ResourceType, int), List<Waypoint>>();
-        rememberedPathsKeys = new Dictionary<ResourceManager.ResourceType, List<int>>();
+        rememberedWaypoints = new Dictionary<(ResourceManager.ResourceType, int), Waypoint>();
+        rememberedWaypointsKeys = new Dictionary<ResourceManager.ResourceType, List<int>>();
         numTravelingOnLine = new Dictionary<WaypointBridge, int>();
         bridgeSet = new HashSet<WaypointBridge>();
 
@@ -756,10 +756,9 @@ public class WaypointManager : MonoBehaviour {
         return Dijkstra(start, chargingWaypoints[random]);
     }
 
-    public void AddtoRememberedPaths(List<Waypoint> listOfWaypoints, ResourceManager.ResourceType typeAtEndOfPath)
+    public void AddtorememberedWaypoints(Waypoint waypoint, ResourceManager.ResourceType typeAtEndOfPath)
     {
-        listOfWaypoints.Reverse();
-        List<int> intList = rememberedPathsKeys[typeAtEndOfPath];
+        List<int> intList = rememberedWaypointsKeys[typeAtEndOfPath];
         if (intList == null)
         {
             intList = new List<int>();
@@ -776,32 +775,32 @@ public class WaypointManager : MonoBehaviour {
             }
         }
         intList.Add(random);
-        rememberedPathsKeys[typeAtEndOfPath] = intList;
+        rememberedWaypointsKeys[typeAtEndOfPath] = intList;
 
-        rememberedPaths.Add((typeAtEndOfPath, random), listOfWaypoints);
+        rememberedWaypoints.Add((typeAtEndOfPath, random), waypoint);
     }
 
-    public List<Waypoint> GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
+    public Waypoint GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
     {
-        List<int> returnedList = rememberedPathsKeys[rescouceToFind];
+        List<int> returnedList = rememberedWaypointsKeys[rescouceToFind];
         int random = Random.Range(0, returnedList.Count - 1);
         if (random < 0)
         {
             return null;
         }
 
-        return rememberedPaths[(rescouceToFind, returnedList[random])];
+        return rememberedWaypoints[(rescouceToFind, returnedList[random])];
     }
 
-    public void RemoveRememberedPath(ResourceManager.ResourceType typeToRemove, List<Waypoint> pathToRemove)
+    public void RemoveRememberedPath(ResourceManager.ResourceType typeToRemove, Waypoint waypointToRemove)
     {
-        List<int> returnedIntList = rememberedPathsKeys[typeToRemove];
+        List<int> returnedIntList = rememberedWaypointsKeys[typeToRemove];
 
         foreach (int i in returnedIntList)
         {
-            if (rememberedPaths[(typeToRemove, i)] == pathToRemove)
+            if (rememberedWaypoints[(typeToRemove, i)] == waypointToRemove)
             {
-                rememberedPaths.Remove((typeToRemove, i));
+                rememberedWaypoints.Remove((typeToRemove, i));
             }
         }
     }

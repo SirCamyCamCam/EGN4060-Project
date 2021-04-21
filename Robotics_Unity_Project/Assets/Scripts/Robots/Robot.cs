@@ -41,6 +41,8 @@ public class Robot : MonoBehaviour
     [Space(15)]
     [Header("Battery Settings")]
     [SerializeField]
+    private bool chargeMethod;
+    [SerializeField]
     private float drainRate;
     [SerializeField]
     private float drainTime;
@@ -99,7 +101,7 @@ public class Robot : MonoBehaviour
 
     private RobotState robotState;
     private RobotGoal robotGoal;
-    private ResourceManager.ResourceType typeToGet;
+    private ResourceManager.ResourceType targetResourceType;
 
     private Waypoint targetWaypoint;
     private Waypoint prevWaypoint;
@@ -114,6 +116,7 @@ public class Robot : MonoBehaviour
     private float battery;
     private Coroutine drainBattery;
     private Coroutine chargeBattery;
+    private bool goToCharge;
 
     private List<Transform> nearbyRobots;
     private List<Transform> nearbyRocks;
@@ -134,6 +137,7 @@ public class Robot : MonoBehaviour
     {
         battery = 1;
         drainBattery = StartCoroutine(DrainBattery());
+        targetWaypoint = WaypointManager.main.GetHomeWaypoint();
     }
 
     void Update()
@@ -165,11 +169,20 @@ public class Robot : MonoBehaviour
             }
             else if (robotGoal == RobotGoal.RESOURSE && prevWaypoint.ReturnWaypointType() != WaypointManager.WaypointType.HOME)
             {
-                targetResource = ResourceManager.main.ReturnNearestResource(typeToGet, robotTransform.position);
+                targetResource = ResourceManager.main.ReturnNearestResource(targetResourceType, robotTransform.position);
                 robotState = RobotState.COLLECT;
             }
             else if (robotGoal == RobotGoal.RESOURSE && prevWaypoint.ReturnWaypointType() == WaypointManager.WaypointType.HOME)
             {
+                if (goToCharge)
+                {
+                    GoChargeRobot();
+                }
+                else
+                {
+                    robotState = RobotState.IDLE;
+                    robotGoal = RobotGoal.NONE;
+                }
                 // Add to resource manager
             }
             else if (robotGoal == RobotGoal.CHARGE)
@@ -178,6 +191,10 @@ public class Robot : MonoBehaviour
             }
             else if (robotGoal == RobotGoal.NONE)
             {
+                if (goToCharge)
+                {
+                    GoChargeRobot();
+                }
                 robotState = RobotState.IDLE;
             }
         }
@@ -252,11 +269,11 @@ public class Robot : MonoBehaviour
     private void IdleRobot()
     {
         // Determine whether to turn around
-        if (Vector2.Distance(robotTransform.position, targetWaypoint.transform.position) > idleDistance && isReturningToWaypoint == false)
+        if (Vector2.Distance(robotTransform.position, targetWaypoint.ReturnWaypointTransform().position) > idleDistance && isReturningToWaypoint == false)
         {
             isReturningToWaypoint = true;
         }
-        else if (Vector2.Distance(robotTransform.position, targetWaypoint.transform.position) < idleDistance - 1 && isReturningToWaypoint == true)
+        else if (Vector2.Distance(robotTransform.position, targetWaypoint.ReturnWaypointTransform().position) < idleDistance - 1 && isReturningToWaypoint == true)
         {
             isReturningToWaypoint = false;
         }
@@ -283,8 +300,8 @@ public class Robot : MonoBehaviour
         else
         {
             // Turn to waypoint
-            Vector3 direction = (targetWaypoint.transform.position - robotTransform.position).normalized;
-            Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.back);
+            Vector3 direction = (targetWaypoint.ReturnWaypointTransform().position - robotTransform.position).normalized;
+            Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.down);
             robotTransform.rotation = Quaternion.Slerp(robotTransform.rotation, lookRotation, Time.deltaTime * idleRotationSpeed);
             robotTransform.eulerAngles = new Vector3(0, 0, robotTransform.eulerAngles.z);
 
@@ -383,7 +400,18 @@ public class Robot : MonoBehaviour
     {
         if (battery < critialBattery)
         {
-            // Tell RobotManager
+            if (!chargeMethod)
+            {
+                GoChargeRobot();
+            }
+            else
+            {
+                goToCharge = true;
+            }
+        }
+        else if (battery <= 0)
+        {
+            DeadBattery();
         }
     }
 
@@ -426,16 +454,36 @@ public class Robot : MonoBehaviour
     
     private void DeadBattery()
     {
-
+        RobotManager.main.RobotDEATH(this);
+        Destroy(robotGameObject);
     }
 
     private void PickUpResource()
     {
+        Resource resource = ResourceManager.main.ReturnNearestResource(targetResourceType, robotTransform.position);
+        resource.RemoveUnit();
         robotState = RobotState.TRAVEL;
         Waypoint nearest = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
         List<Waypoint> list = WaypointManager.main.ReturnToHome(nearest);
         AssignWaypointList(list);
         WaypointManager.main.SelectLines(list);
+
+        ResourceManager.main.AddRssToStorage(targetResourceType, 1);
+    }
+
+    private void GoChargeRobot()
+    {
+        robotGoal = RobotGoal.CHARGE;
+        if (robotGoal == RobotGoal.RESOURSE)
+        {
+            RobotManager.main.AddToResourceQueue(targetResourceType);
+        }
+
+        Waypoint closestWaypointToRobot = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
+        List<Waypoint> pathToCharger = WaypointManager.main.PathToChargingWaypoint(closestWaypointToRobot);
+        AssignWaypointList(pathToCharger);
+        robotState = RobotState.TRAVEL;
+        WaypointManager.main.SelectLines(pathToCharger);
     }
 
     #endregion
@@ -474,7 +522,7 @@ public class Robot : MonoBehaviour
 
     public void AssignTargetResourceType(ResourceManager.ResourceType type)
     {
-        typeToGet = type;
+        targetResourceType = type;
     }
 
     public void AddtoNearbyRobots(Transform robot)
@@ -501,16 +549,21 @@ public class Robot : MonoBehaviour
     {
         Resource resource = resourceTransform.GetComponent<Resource>();
 
-        if (resource.ReturnResourceType() == typeToGet)
+        if (resource.ReturnResourceType() == targetResourceType)
         {
             resource.RemoveUnit();
             robotState = RobotState.TRAVEL;
             Waypoint closeWaypoint = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
             List<Waypoint> list = WaypointManager.main.ReturnToHome(closeWaypoint);
             AssignWaypointList(list);
-            WaypointManager.main.AddtoRememberedPaths(list, resource.ReturnResourceType());
+            WaypointManager.main.AddtorememberedWaypoints(closeWaypoint, resource.ReturnResourceType());
             WaypointManager.main.SelectLines(list);
         }
+    }
+
+    public Transform ReturnRobotTransform()
+    {
+        return robotTransform;
     }
 
     #endregion

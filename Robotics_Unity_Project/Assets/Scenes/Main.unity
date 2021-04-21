@@ -3310,6 +3310,55 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &200465257
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 200465259}
+  - component: {fileID: 200465258}
+  m_Layer: 0
+  m_Name: '[RobotManager]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &200465258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200465257}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b53f6abe918a6141b6e520dd19a9cd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnRate: 3
+  maxRobots: 3
+  minRobots: 1
+  robotPrefab: {fileID: 2618801534510681396, guid: 6214723fbe4816241acd5ed2aab8f384,
+    type: 3}
+  robotManager: {fileID: 200465257}
+--- !u!4 &200465259
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200465257}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.28682563, y: -0.039926168, z: -2.0664062}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &202646870
 GameObject:
   m_ObjectHideFlags: 0
@@ -12483,7 +12532,7 @@ MonoBehaviour:
     serializedVersion: 2
     rgba: 4278192639
   lineWidth: 0.1
-  lineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 3}
+  lineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
   homeWaypoint:
   - {fileID: 277425618}
   chargingWaypointsParent: {fileID: 358418123}
