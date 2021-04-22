@@ -2436,8 +2436,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 383273250a053d640b2e6cc13e727645, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minRssAmt: 50
-  maxRssAmt: 60
+  minRssAmt: 150
+  maxRssAmt: 200
   minDistanceBetweenResources: 0.2
   minDistanceBetweenRocks: 0.2
   minDistanceBetweenWaypoints: 0.2
@@ -2469,18 +2469,26 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  resourceRegenChance: 0.3
+  resourceRegenChance: 0.5
   resourceMinEmptyTime: 10
-  fetchResourceWaitTime: 0.5
+  fetchResourceWaitTime: 1
   resourceScale: 10
-  ironMinRequiredAmt: 5
-  ironStorageCapacity: 10
-  copperMinRequiredAmt: 5
-  copperStorageCapacity: 10
-  goldMinRequiredAmt: 5
-  goldStorageCapacity: 10
-  titaniumMinRequiredAmt: 5
-  titaniumStorageCapacity: 10
+  ironMinRequiredAmt: 30
+  ironStorageCapacity: 35
+  ironDeletionRate: 1
+  ironDeletionTime: 15
+  copperMinRequiredAmt: 25
+  copperStorageCapacity: 30
+  copperDeletionRate: 1
+  copperDeletionTime: 20
+  goldMinRequiredAmt: 20
+  goldStorageCapacity: 25
+  goldDeletionRate: 1
+  goldDeletionTime: 30
+  titaniumMinRequiredAmt: 10
+  titaniumStorageCapacity: 15
+  titaniumDeletionRate: 1
+  titaniumDeletionTime: 30
   ironPrefab: {fileID: 1507150004569422737, guid: 96ac9a8dadf16cf4eb45cf93c3ff3642,
     type: 3}
   copperPrefab: {fileID: 6068672286827979982, guid: e835111fcb9689f448ebe62abebbc83c,
@@ -3502,8 +3510,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnRate: 3
-  maxRobots: 50
-  minRobots: 30
+  maxRobots: 60
+  minRobots: 50
   robotPrefab: {fileID: 2618801534510681396, guid: 6214723fbe4816241acd5ed2aab8f384,
     type: 3}
   robotManager: {fileID: 200465257}
@@ -12847,6 +12855,9 @@ MonoBehaviour:
   selectedLineColor:
     serializedVersion: 2
     rgba: 4278192639
+  rememberedLineColor:
+    serializedVersion: 2
+    rgba: 4293692720
   lineWidth: 0.1
   lineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
   homeWaypoint:

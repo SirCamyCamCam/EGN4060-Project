@@ -51,6 +51,14 @@ public class Robot : MonoBehaviour
     private float chargeTime;
     [SerializeField]
     private float critialBattery;
+    [SerializeField]
+    private SpriteRenderer batterySprite;
+    [SerializeField]
+    private Color32 fullBatteryColor;
+    [SerializeField]
+    private Color32 deadBatteryColor;
+    [SerializeField]
+    private Color32 mediumBatteryColor;
 
     [Space(15)]
     [Header("Travel Setting")]
@@ -118,6 +126,7 @@ public class Robot : MonoBehaviour
     private Coroutine drainBattery;
     private Coroutine chargeBattery;
     private bool goToCharge;
+    private bool robotDead;
 
     private List<Transform> nearbyRobots;
     private List<Transform> nearbyRocks;
@@ -142,13 +151,17 @@ public class Robot : MonoBehaviour
         battery = Random.value;
         drainBattery = StartCoroutine(DrainBattery());
         targetWaypoint = WaypointManager.main.GetHomeWaypoint();
+        robotDead = false;
     }
 
     void Update()
     {
-        DetermineGoal();
-        DetermineAction();
-        CheckBatteryLevel();
+        if (robotDead == false)
+        {
+            DetermineGoal();
+            DetermineAction();
+            CheckBatteryLevel();
+        }
     }
 
     #endregion
@@ -432,9 +445,18 @@ public class Robot : MonoBehaviour
                 goToCharge = true;
             }
         }
-        else if (battery <= 0)
+        if (battery <= 0)
         {
             DeadBattery();
+        }
+
+        if (battery > 0.5f)
+        {
+            batterySprite.color = Color32.Lerp(mediumBatteryColor, fullBatteryColor, battery);
+        }
+        else
+        {
+            batterySprite.color = Color32.Lerp(deadBatteryColor, mediumBatteryColor, battery);
         }
     }
 
@@ -490,20 +512,45 @@ public class Robot : MonoBehaviour
     private void DeadBattery()
     {
         RobotManager.main.RobotDEATH(this);
-        Destroy(robotGameObject);
+        if (drainBattery != null)
+        {
+            StopCoroutine(drainBattery);
+            drainBattery = null;
+        }
+        if (chargeBattery != null)
+        {
+            StopCoroutine(chargeBattery);
+            chargeBattery = null;
+        }
+        robotState = RobotState.DEADBATTERY;
+        robotGoal = RobotGoal.NONE;
+        robotDead = true;
+        StartCoroutine(FlashDeadBattery());
+
+        waypointPath.Add(prevWaypoint);
+        WaypointManager.main.UnselectLines(waypointPath);
     }
 
     private void PickUpResource()
     {
         Resource resource = ResourceManager.main.ReturnNearestResource(targetResourceType, robotTransform.position);
-        resource.RemoveUnit();
-        robotState = RobotState.TRAVEL;
-        Waypoint nearest = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
-        List<Waypoint> list = WaypointManager.main.ReturnToHome(nearest);
-        AssignWaypointList(list);
-        WaypointManager.main.SelectLines(list);
+        if (resource.ReturnResourceAmount() > 0)
+        {
+            resource.RemoveUnit();
+            robotState = RobotState.TRAVEL;
+            Waypoint nearest = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
+            List<Waypoint> list = WaypointManager.main.ReturnToHome(nearest);
+            AssignWaypointList(list);
+            WaypointManager.main.SelectLines(list);
 
-        ResourceManager.main.AddRssToStorage(targetResourceType, 1);
+            ResourceManager.main.AddRssToStorage(targetResourceType, 1);
+        }
+        else
+        {
+            robotState = RobotState.SEARCH;
+            robotGoal = RobotGoal.RESOURSE;
+            targetResourceType = resource.ReturnResourceType();
+        }
     }
 
     private void GoChargeRobot()
@@ -517,6 +564,7 @@ public class Robot : MonoBehaviour
         Waypoint closestWaypointToRobot = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
         List<Waypoint> pathToCharger = WaypointManager.main.PathToChargingWaypoint(closestWaypointToRobot);
         AssignWaypointList(pathToCharger);
+        targetWaypoint = null;
         robotState = RobotState.TRAVEL;
         WaypointManager.main.SelectLines(pathToCharger);
     }
@@ -590,14 +638,27 @@ public class Robot : MonoBehaviour
 
         if (resource.ReturnResourceType() == targetResourceType && robotState == RobotState.SEARCH)
         {
-            resource.RemoveUnit();
-            robotState = RobotState.TRAVEL;
-            Waypoint closeWaypoint = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
-            List<Waypoint> list = WaypointManager.main.ReturnToHome(closeWaypoint);
-            AssignWaypointList(list);
-            WaypointManager.main.AddtorememberedWaypoints(closeWaypoint, targetResourceType, resource);
-            WaypointManager.main.SelectLines(list);
-            AssignTargetWaypoint(list[0]);
+            if (resource.ReturnResourceAmount() > 0)
+            {
+                resource.RemoveUnit();
+                List<Waypoint> pathHome = WaypointManager.main.CheckIfPathIsAlreadyRemembered(resource);
+                robotState = RobotState.TRAVEL;
+                if (pathHome != null)
+                {
+                    AssignWaypointList(pathHome);
+                    WaypointManager.main.SelectLines(pathHome);
+                    AssignTargetWaypoint(pathHome[0]);
+                }
+                else
+                {
+                    Waypoint closeWaypoint = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
+                    List<Waypoint> list = WaypointManager.main.ReturnToHome(closeWaypoint);
+                    AssignWaypointList(list);
+                    WaypointManager.main.AddtorememberedWaypoints(closeWaypoint, targetResourceType, resource);
+                    WaypointManager.main.SelectLines(list);
+                    AssignTargetWaypoint(list[0]);
+                }
+            }
         }
     }
 
@@ -645,6 +706,15 @@ public class Robot : MonoBehaviour
 
         chargeBattery = null;
         chargeBattery = StartCoroutine(ChargeBattery());
+    }
+
+    private IEnumerator FlashDeadBattery()
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        batterySprite.enabled = !batterySprite.enabled;
+
+        StartCoroutine(FlashDeadBattery());
     }
 
     #endregion

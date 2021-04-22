@@ -116,6 +116,8 @@ public class WaypointManager : MonoBehaviour {
     [SerializeField]
     private Color32 selectedLineColor;
     [SerializeField]
+    private Color32 rememberedLineColor;
+    [SerializeField]
     private float lineWidth;
     [SerializeField]
     public Material lineMaterial;
@@ -146,6 +148,7 @@ public class WaypointManager : MonoBehaviour {
     private Dictionary<(ResourceManager.ResourceType, int), Resource> rememberedWaypoints;
     private Dictionary<ResourceManager.ResourceType, List<int>> rememberedWaypointsKeys;
     private Dictionary<WaypointBridge, int> numTravelingOnLine;
+    private Dictionary<WaypointBridge, int> numRemeberedPath;
     private int numChargingWaypoints;
     private bool spawned;
     private bool enable = false;
@@ -163,6 +166,7 @@ public class WaypointManager : MonoBehaviour {
         rememberedWaypoints = new Dictionary<(ResourceManager.ResourceType, int), Resource>();
         rememberedWaypointsKeys = new Dictionary<ResourceManager.ResourceType, List<int>>();
         numTravelingOnLine = new Dictionary<WaypointBridge, int>();
+        numRemeberedPath = new Dictionary<WaypointBridge, int>();
         bridgeSet = new HashSet<WaypointBridge>();
 
         allWaypoints = new List<Waypoint>();
@@ -201,7 +205,6 @@ public class WaypointManager : MonoBehaviour {
             EnsureMinimumChargingPoints();
             ConnectAllWaypoints();
             DeleteConnectionsThroughRocks();
-            DeleteConnectionsThroughResources();
             DeleteUnconnectedWaypoints();
         }
     }
@@ -370,53 +373,6 @@ public class WaypointManager : MonoBehaviour {
         }
     }
 
-    private void DeleteConnectionsThroughResources()
-    {
-        foreach (Waypoint waypoint in allWaypoints)
-        {
-            bool restart = true;
-            while (restart)
-            {
-                restart = false;
-                foreach (Waypoint connection in waypoint.GetConnectedWaypoints())
-                {
-                    RaycastHit2D hit;
-                    Vector2 waypointPos = waypoint.ReturnWaypointTransform().position;
-                    Vector2 connectionPos = connection.ReturnWaypointTransform().position;
-                    Vector2 direction = connectionPos - waypointPos;
-                    float distance = direction.magnitude;
-                    hit = Physics2D.Raycast(waypoint.ReturnWaypointTransform().position, direction, distance);
-
-                    if (hit.collider != null)
-                    {
-                        if (hit.transform.tag == "resource")
-                        {
-                            foreach (WaypointBridge bridge in bridgeSet)
-                            {
-                                if (bridge.waypoint1 == waypoint && bridge.waypoint2 == connection ||
-                                    bridge.waypoint1 == connection && bridge.waypoint2 == waypoint)
-                                {
-                                    LineRenderer waypointLine = waypointLines[bridge];
-                                    waypointLines.Remove(bridge);
-                                    Destroy(waypointLine);
-                                    bridgeSet.Remove(bridge);
-                                    waypoint.RemoveAConnectedWaypoint(connection);
-                                    connection.RemoveAConnectedWaypoint(waypoint);
-                                    restart = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (restart)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     private void ConnectAllWaypoints()
     {
         if (closestMethod)
@@ -453,7 +409,19 @@ public class WaypointManager : MonoBehaviour {
 
                 foreach (Waypoint closeWaypoint in closestWaypoints)
                 {
-                    CreateWaypointBridge(waypoint1, closeWaypoint);
+                    bool alreadyCreated = false;
+                    foreach (WaypointBridge bridge in bridgeSet)
+                    {
+                        if (bridge.Contains(waypoint1, closeWaypoint))
+                        {
+                            alreadyCreated = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyCreated)
+                    {
+                        CreateWaypointBridge(waypoint1, closeWaypoint);
+                    }
                 }
             }
         }
@@ -552,6 +520,7 @@ public class WaypointManager : MonoBehaviour {
         newLine.SetPosition(1, waypoint2.ReturnWaypointGameObject().transform.position);
         waypointLines.Add(newBridge, newLine);
         numTravelingOnLine.Add(newBridge, 0);
+        numRemeberedPath.Add(newBridge, 0);
     }
 
     // Spawns all the original waypoints to start the sim
@@ -748,6 +717,69 @@ public class WaypointManager : MonoBehaviour {
         return officalShortestPath[target];
     }
 
+    private void SelectRemeberedPath(List<Waypoint> path)
+    {
+        int listLength = path.Count;
+
+        for (int i = 0; i < listLength - 1; i++)
+        {
+            WaypointBridge currentBridge = null;
+            foreach (WaypointBridge bridge in bridgeSet)
+            {
+                if (bridge.Contains(path[i], path[i + 1]))
+                {
+                    currentBridge = bridge;
+                    break;
+                }
+            }
+
+            if (numTravelingOnLine[currentBridge] == 0)
+            {
+                waypointLines[currentBridge].startColor = rememberedLineColor;
+                waypointLines[currentBridge].endColor = rememberedLineColor;
+                waypointLines[currentBridge].sortingOrder = 1;
+            }
+            numRemeberedPath[currentBridge] += 1;
+        }
+    }
+
+    private void DeselectRemeberedPath(List<Waypoint> path)
+    {
+        int listLength = path.Count;
+
+        for (int i = 0; i < listLength - 1; i++)
+        {
+            WaypointBridge currentBridge = null;
+            foreach (WaypointBridge bridge in bridgeSet)
+            {
+                if (bridge.Contains(path[i], path[i + 1]))
+                {
+                    currentBridge = bridge;
+                    break;
+                }
+            }
+
+            if (currentBridge == null)
+            {
+                return;
+            }
+
+            numRemeberedPath[currentBridge] -= 1;
+
+            if (numTravelingOnLine[currentBridge] == 0 && numRemeberedPath[currentBridge] == 0)
+            {
+                waypointLines[currentBridge].startColor = unselectedLineColor;
+                waypointLines[currentBridge].endColor = unselectedLineColor;
+                waypointLines[currentBridge].sortingOrder = 0;
+            }
+            else if (numTravelingOnLine[currentBridge] != 0)
+            {
+                waypointLines[currentBridge].startColor = selectedLineColor;
+                waypointLines[currentBridge].endColor = selectedLineColor;
+            }
+        }
+    }
+
     #endregion
 
     #region Public Methods
@@ -758,16 +790,16 @@ public class WaypointManager : MonoBehaviour {
         return Dijkstra(start, homeWaypoints[0]);
     }
 
-    public Waypoint ReturnClosestWaypoint(Vector2 position)
+    public Waypoint ReturnClosestWaypoint(Vector3 position)
     {
         float currentDistance = int.MaxValue;
         Waypoint currentWaypoint = null;
 
         foreach (Waypoint waypoint in allWaypoints)
         {
-            if (Vector2.Distance(waypoint.ReturnWaypointTransform().position, position) < currentDistance)
+            if (Vector3.Distance(waypoint.ReturnWaypointTransform().position, position) < currentDistance)
             {
-                currentDistance = Vector2.Distance(waypoint.ReturnWaypointTransform().position, position);
+                currentDistance = Vector3.Distance(waypoint.ReturnWaypointTransform().position, position);
                 currentWaypoint = waypoint;
             }
         }
@@ -815,6 +847,9 @@ public class WaypointManager : MonoBehaviour {
 
         resource.AddWaypoint(waypoint);
         rememberedWaypoints.Add((typeAtEndOfPath, random), resource);
+
+        List<Waypoint> rememberedPath = Dijkstra(waypoint, homeWaypoints[0]);
+        SelectRemeberedPath(rememberedPath);
     }
 
     public Waypoint GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
@@ -850,6 +885,9 @@ public class WaypointManager : MonoBehaviour {
             {
                 rememberedWaypoints.Remove((typeToRemove, i));
                 rememberedWaypointsKeys[typeToRemove].Remove(i);
+
+                List<Waypoint> rememberedPath = Dijkstra(resource.ReturnWaypoint(), homeWaypoints[0]);
+                DeselectRemeberedPath(rememberedPath);
                 return;
             }
         }
@@ -935,11 +973,16 @@ public class WaypointManager : MonoBehaviour {
 
             numTravelingOnLine[currentBridge] -= 1;
 
-            if (numTravelingOnLine[currentBridge] == 0)
+            if (numTravelingOnLine[currentBridge] == 0 && numRemeberedPath[currentBridge] == 0)
             {
                 waypointLines[currentBridge].startColor = unselectedLineColor;
                 waypointLines[currentBridge].endColor = unselectedLineColor;
                 waypointLines[currentBridge].sortingOrder = 0;
+            }
+            else if (numTravelingOnLine[currentBridge] == 0 && numRemeberedPath[currentBridge] != 0)
+            {
+                waypointLines[currentBridge].startColor = rememberedLineColor;
+                waypointLines[currentBridge].endColor = rememberedLineColor;
             }
         }
     }
@@ -968,6 +1011,28 @@ public class WaypointManager : MonoBehaviour {
             list.Add(waypoint.ReturnWaypointTransform());
         }
         return list;
+    }
+
+    public List<Waypoint> CheckIfPathIsAlreadyRemembered(Resource resource)
+    {
+        ResourceManager.ResourceType type = resource.ReturnResourceType();
+
+        if (!rememberedWaypointsKeys.ContainsKey(type))
+        {
+            return null;
+        }
+
+        List<int> keys = rememberedWaypointsKeys[type];
+        
+        foreach (int key in keys)
+        {
+            if (rememberedWaypoints[(type, key)] == resource)
+            {
+                return Dijkstra(resource.ReturnWaypoint(), homeWaypoints[0]);
+            }
+        }
+
+        return null;
     }
 
     #endregion

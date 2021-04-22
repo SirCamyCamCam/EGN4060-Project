@@ -71,17 +71,33 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private int ironStorageCapacity;
     [SerializeField]
+    private float ironDeletionRate;
+    [SerializeField]
+    private float ironDeletionTime;
+    [SerializeField]
     private float copperMinRequiredAmt;
     [SerializeField]
     private int copperStorageCapacity;
+    [SerializeField]
+    private float copperDeletionRate;
+    [SerializeField]
+    private float copperDeletionTime;
     [SerializeField]
     private float goldMinRequiredAmt;
     [SerializeField]
     private int goldStorageCapacity;
     [SerializeField]
+    private float goldDeletionRate;
+    [SerializeField]
+    private float goldDeletionTime;
+    [SerializeField]
     private float titaniumMinRequiredAmt;
     [SerializeField]
     private int titaniumStorageCapacity;
+    [SerializeField]
+    private float titaniumDeletionRate;
+    [SerializeField]
+    private float titaniumDeletionTime;
 
     // Prefabs
     [Space(15)]
@@ -177,6 +193,10 @@ public class ResourceManager : MonoBehaviour
             Debug.Log("Total Gold : " + goldList.Count);
             Debug.Log("Total Titanium : " + titaniumList.Count);
             StartCoroutine(DetermineResourceToGet());
+            StartCoroutine(DepleteCopper());
+            StartCoroutine(DepleteGold());
+            StartCoroutine(DepleteIron());
+            StartCoroutine(DepleteTitanium());
         }  
     }
 
@@ -602,6 +622,42 @@ public class ResourceManager : MonoBehaviour
 
         yield return new WaitForSeconds(fetchResourceWaitTime);
         StartCoroutine(DetermineResourceToGet());
+    }
+
+    private IEnumerator DepleteIron()
+    {
+        yield return new WaitForSeconds(ironDeletionTime);
+
+        ironStoredAmount -= ironDeletionRate;
+
+        StartCoroutine(DepleteIron());
+    }
+
+    private IEnumerator DepleteCopper()
+    {
+        yield return new WaitForSeconds(copperDeletionTime);
+
+        copperStoredAmount -= copperDeletionRate;
+
+        StartCoroutine(DepleteCopper());
+    }
+
+    private IEnumerator DepleteGold()
+    {
+        yield return new WaitForSeconds(goldDeletionTime);
+
+        goldStoredAmount -= goldDeletionRate;
+
+        StartCoroutine(DepleteGold());
+    }
+
+    private IEnumerator DepleteTitanium()
+    {
+        yield return new WaitForSeconds(titaniumDeletionTime);
+
+        titaniumStoredAmount -= titaniumDeletionRate;
+
+        StartCoroutine(DepleteTitanium());
     }
 
     #endregion
