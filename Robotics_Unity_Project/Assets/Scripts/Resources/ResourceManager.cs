@@ -448,6 +448,10 @@ public class ResourceManager : MonoBehaviour
             // Check if all of a resource has been spawned
             if (numRssToSpawnIndv[x] <= 0)
             {
+                if (numRssToSpawnIndv.Length == (x+1))
+                {
+                    return;
+                }
                 x++;
             }
             
