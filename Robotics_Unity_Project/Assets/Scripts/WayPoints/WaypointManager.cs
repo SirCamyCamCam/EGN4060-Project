@@ -201,6 +201,7 @@ public class WaypointManager : MonoBehaviour {
             EnsureMinimumChargingPoints();
             ConnectAllWaypoints();
             DeleteConnectionsThroughRocks();
+            DeleteConnectionsThroughResources();
             DeleteUnconnectedWaypoints();
         }
 
@@ -381,6 +382,53 @@ public class WaypointManager : MonoBehaviour {
             }
         }
     }
+    private void DeleteConnectionsThroughResources()
+    {
+        foreach (Waypoint waypoint in allWaypoints)
+        {
+            bool restart = true;
+            while (restart)
+            {
+                restart = false;
+                foreach (Waypoint connection in waypoint.GetConnectedWaypoints())
+                {
+                    RaycastHit2D hit;
+                    Vector2 waypointPos = waypoint.ReturnWaypointTransform().position;
+                    Vector2 connectionPos = connection.ReturnWaypointTransform().position;
+                    Vector2 direction = connectionPos - waypointPos;
+                    float distance = direction.magnitude;
+                    hit = Physics2D.Raycast(waypoint.ReturnWaypointTransform().position, direction, distance);
+
+                    if (hit.collider != null)
+                    {
+                        if (hit.transform.tag == "resource")
+                        {
+                            foreach (WaypointBridge bridge in bridgeSet)
+                            {
+                                if (bridge.waypoint1 == waypoint && bridge.waypoint2 == connection ||
+                                    bridge.waypoint1 == connection && bridge.waypoint2 == waypoint)
+                                {
+                                    LineRenderer waypointLine = waypointLines[bridge];
+                                    waypointLines.Remove(bridge);
+                                    Destroy(waypointLine);
+                                    bridgeSet.Remove(bridge);
+                                    waypoint.RemoveAConnectedWaypoint(connection);
+                                    connection.RemoveAConnectedWaypoint(waypoint);
+                                    restart = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (restart)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
 
     private void ConnectAllWaypoints()
     {
@@ -782,6 +830,7 @@ public class WaypointManager : MonoBehaviour {
 
     public Waypoint GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
     {
+        
         List<int> returnedList = rememberedWaypointsKeys[rescouceToFind];
         int random = Random.Range(0, returnedList.Count - 1);
         if (random < 0)
@@ -838,6 +887,7 @@ public class WaypointManager : MonoBehaviour {
         }
         return homes;
     }
+   
 
     public void SelectLines(List<Waypoint> list)
     {

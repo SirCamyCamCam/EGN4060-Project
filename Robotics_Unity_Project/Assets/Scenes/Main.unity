@@ -2381,18 +2381,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minRssAmt: 50
   maxRssAmt: 60
-  minDistanceBetweenObj: 2
+  minDistanceBetweenObj: 6
   maxDistanceBetweenObj: 0
   xBorderMagnitude: 48
   yBorderMagnitude: 48
   maxSpawnAttempts: 30
-  minDistanceFromHome: 0
+  minDistanceFromHome: 10
   rssSizeCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 0
+      time: 0.03750229
+      value: 0.049545288
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -2400,8 +2400,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 1
-      value: 1
+      time: 0.520813
+      value: 0.32548904
       inSlope: 2
       outSlope: 2
       tangentMode: 0
@@ -2417,21 +2417,21 @@ MonoBehaviour:
   copperNodeMinReq: 0
   goldNodeMinReq: 0
   titaniumNodeMinReq: 0
-  setIronSpawnRate: 0
-  setCopperSpawnRate: 0
-  setGoldSpawnRate: 0
-  setTitaniumSpawnRate: 0
+  setIronSpawnRate: 0.4
+  setCopperSpawnRate: 0.3
+  setGoldSpawnRate: 0.2
+  setTitaniumSpawnRate: 0.1
   ironDepeleteRate: 0
   copperDepeleteRate: 0
   goldDepeleteRate: 0
   titaniumDepeleteRate: 0
-  copperMinAmt: 0
-  goldMinAmt: 0
-  titaniumMinAmt: 0
-  ironCapacity: 0
-  copperCapacity: 0
-  goldCapacity: 0
-  titaniumCapacity: 0
+  copperMinRequiredAmt: 0
+  goldMinRequiredAmt: 0
+  titaniumMinRequiredAmt: 0
+  ironStorageCapacity: 0
+  copperStorageCapacity: 0
+  goldStorageCapacity: 0
+  titaniumStorageCapacity: 0
   ironPrefab: {fileID: 1507150004569422737, guid: 96ac9a8dadf16cf4eb45cf93c3ff3642,
     type: 3}
   copperPrefab: {fileID: 6068672286827979982, guid: e835111fcb9689f448ebe62abebbc83c,
@@ -9192,7 +9192,7 @@ GameObject:
   - component: {fileID: 662609341}
   m_Layer: 0
   m_Name: Copper
-  m_TagString: Untagged
+  m_TagString: resource
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -13005,7 +13005,7 @@ GameObject:
   - component: {fileID: 1043378276}
   m_Layer: 0
   m_Name: Iron
-  m_TagString: Untagged
+  m_TagString: resource
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -24728,7 +24728,7 @@ GameObject:
   - component: {fileID: 2010406161}
   m_Layer: 0
   m_Name: Titanium
-  m_TagString: Untagged
+  m_TagString: resource
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -25761,7 +25761,7 @@ GameObject:
   - component: {fileID: 2082348560}
   m_Layer: 0
   m_Name: Gold
-  m_TagString: Untagged
+  m_TagString: resource
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

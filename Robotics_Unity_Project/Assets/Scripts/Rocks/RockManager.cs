@@ -11,6 +11,11 @@ using UnityEngine;
 public class RockManager : MonoBehaviour
 {
 
+    #region Static Fields
+
+    public static RockManager main;
+
+    #endregion
     #region Inspector Fields
 
     [Header("Setting")]
@@ -47,7 +52,7 @@ public class RockManager : MonoBehaviour
 
     #region Run-Time Fields
 
-    private List<Transform> rocks;
+    public List<Transform> rocks;
 
     #endregion
 
@@ -56,6 +61,7 @@ public class RockManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        main = this;
         rocks = new List<Transform>();
         SpawnRocks();
     }
@@ -102,7 +108,16 @@ public class RockManager : MonoBehaviour
                         break;
                     }
                 }
-
+                // 
+                List<Resource> resources = ResourceManager.main.resourceList;
+                foreach (Resource rss in resources)
+                {
+                    if (Vector3.Distance(rss.transform.position, spawnPoint) <= minDistanceFromHome)
+                    {
+                        legalPoint = false;
+                        break;
+                    }
+                }
                 if (spawnAttempt == maxSpawnAttempts)
                 {
                     return;
@@ -139,7 +154,13 @@ public class RockManager : MonoBehaviour
 
             }
         }
+        Debug.Log("Rocks Spawned");
     }
 
     #endregion
+
+    
+
+    
 }
+

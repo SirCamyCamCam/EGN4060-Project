@@ -46,7 +46,7 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private int maxRssAmt;
     [SerializeField]
-    private float minDistanceBetweenObj;
+    private float minDistanceBetweenObj = 6;
     [SerializeField]
     private float maxDistanceBetweenObj;
      [SerializeField]
@@ -56,7 +56,7 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private int maxSpawnAttempts;
     [SerializeField]
-    private float minDistanceFromHome;
+    private float minDistanceFromHome = 10;
     [SerializeField]
     private AnimationCurve rssSizeCurve;
     [SerializeField]
@@ -94,25 +94,25 @@ public class ResourceManager : MonoBehaviour
     private float goldDepeleteRate;
     [SerializeField]
     private float titaniumDepeleteRate;
-
+    [Space(20)]
     [Header("Resource Capacity Settings")]
     // Minimum required amount
-    private float ironMinAmt;
+    private float ironMinRequiredAmt = 1;
     [SerializeField]
-    private float copperMinAmt;
+    private float copperMinRequiredAmt;
     [SerializeField]
-    private float goldMinAmt;
+    private float goldMinRequiredAmt;
     [SerializeField]
-    private float titaniumMinAmt;
-    // Capacity settings
+    private float titaniumMinRequiredAmt;
+    // Storage Capacity settings
     [SerializeField]
-    private int ironCapacity;
+    private int ironStorageCapacity = 10;
     [SerializeField]
-    private int copperCapacity;
+    private int copperStorageCapacity;
     [SerializeField]
-    private int goldCapacity;
+    private int goldStorageCapacity;
     [SerializeField]
-    private int titaniumCapacity;
+    private int titaniumStorageCapacity;
     // Prefabs
     [Header("Prefabs")]
     [SerializeField]
@@ -133,15 +133,16 @@ public class ResourceManager : MonoBehaviour
     private GameObject titaniumParent;
     [SerializeField]
     private GameObject resourceParent;
-    
-    
+
+
     // Stuff
 
     #endregion
 
     #region Run-Time Fields
+    public List<Transform> rssTransformList;
     // resource locations
-    private List<Resource> resourceList;
+    public List<Resource> resourceList;
     private List<Resource> ironList;
     private List<Resource> copperList;
     private List<Resource> goldList;
@@ -162,10 +163,10 @@ public class ResourceManager : MonoBehaviour
     // private List<Transform> titaniumList;
     
     // stored resource amounts
-    private float ironAMT;
-    private float copperAMT;
-    private float goldAMT;
-    private float titaniumAMT;
+    private float ironStoredAmount;
+    private float copperStoredAmount;
+    private float goldStoredAmount;
+    private float titaniumStoredAmount;
     // 
     private bool rssSpawned;
 
@@ -191,13 +192,17 @@ public class ResourceManager : MonoBehaviour
         emptyTitaniumList = new List<Resource>();
         emptyResourceList = new List<Resource>();
         // create new storage amt
-        ironAMT = 0;
-        copperAMT = 0;
-        goldAMT = 0;
-        titaniumAMT = 0;
+        ironStoredAmount = 0;
+        copperStoredAmount = 0;
+        goldStoredAmount = 0;
+        titaniumStoredAmount = 0;
         // assign spawn rates
+        SpawnResources();
+        // F
+        // Feach  ForEach ( Resource rss in ironList)
+        // { add to remeWps (ironListType, i) 
 
-        
+
 
 
     }
@@ -211,61 +216,59 @@ public class ResourceManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (frame < 2)
-        {
-            frame++;
-        }
-        else if (!rssSpawned)
+        //if (frame < 2)
+        //{
+        ////    frame++;
+        ////}
+        //else
+        if (!rssSpawned)
         {
             rssSpawned = true;
             // Spawn Resources
-            SpawnResources();
+            // SpawnResources();
             Debug.Log("Num Iron : " + ironList.Count);
             Debug.Log("Num Copper : " + copperList.Count);
             Debug.Log("Num Gold : " + goldList.Count);
             Debug.Log("Num Titanium : " + titaniumList.Count);
+            StartCoroutine(CheckSpawnedResourceAmount());
+            StartCoroutine(UpdateResourceEmptyTime());
             // Start Coroutine here
             // return? to avoid the below activating
         }
         else 
         {
             // Decay the amount of resources in storage 
-            ironAMT -= ironDepeleteRate;
-            copperAMT -= copperDepeleteRate;
-            goldAMT -= goldDepeleteRate;
-            titaniumAMT -= titaniumDepeleteRate;
+            ironStoredAmount -= ironDepeleteRate;
+            copperStoredAmount -= copperDepeleteRate;
+            goldStoredAmount -= goldDepeleteRate;
+            titaniumStoredAmount -= titaniumDepeleteRate;
             // Check if under min reqs
-            if (ironAMT < ironMinAmt)
-            {
-                // Enque iron 
-                RobotManager.main.AddToResourceQueue(ResourceType.IRON);
-            }
-            if (copperAMT < copperMinAmt)
-            {
-                // Enque iron 
-                RobotManager.main.AddToResourceQueue(ResourceType.COPPER);
-            }
-            if (goldAMT < goldMinAmt)
-            {
-                // Enque iron 
-                RobotManager.main.AddToResourceQueue(ResourceType.GOLD);
-            }
-            if (titaniumAMT < titaniumMinAmt)
-            {
-                // Enque iron 
-                RobotManager.main.AddToResourceQueue(ResourceType.TITANIUM);
-            }
+           if (ironStoredAmount < ironMinRequiredAmt)
+           {
+               // Enque iron 
+               RobotManager.main.AddToResourceQueue(ResourceType.IRON);
+           }
+           if (copperStoredAmount < copperMinRequiredAmt)
+           {
+               // Enque iron 
+               RobotManager.main.AddToResourceQueue(ResourceType.COPPER);
+           }
+           if (goldStoredAmount < goldMinRequiredAmt)
+           {
+               // Enque iron 
+               RobotManager.main.AddToResourceQueue(ResourceType.GOLD);
+           }
+           if (titaniumStoredAmount < titaniumMinRequiredAmt)
+           {
+               // Enque iron 
+               RobotManager.main.AddToResourceQueue(ResourceType.TITANIUM);
+           }
             // enque to rssque 
 
         }
-        // Rss decay 
-
-        // If Rss is low, add X amount of RssType to queue 
-        // 
+        
     }
-    // If IronAmtofRocks < 6 -> 
-    // TimeEmpty = StartTime, After X seconds, { DoIRegen? -> Random #}
-    // Rand : 1/100 -> +1, 2/100 
+    
     private void FixedUpdate()
     {
         // Ask cam if x frames == 1 second
@@ -344,12 +347,15 @@ public class ResourceManager : MonoBehaviour
 
     private IEnumerator UpdateResourceEmptyTime()
     {
-        while(true)
+        if (emptyResourceList.Count != 0)
         {
-            yield return new WaitForSeconds(1);
-            foreach(Resource rss in emptyResourceList)
+            while (true)
             {
-                rss.UpdateEmptyTime();
+                yield return new WaitForSeconds(1);
+                foreach (Resource rss in emptyResourceList)
+                {
+                    rss.UpdateEmptyTime();
+                }
             }
         }
         
@@ -369,6 +375,7 @@ public class ResourceManager : MonoBehaviour
     // Init spawn
     private void SpawnResources()
     {
+
         int numRssToSpawnTot = Random.Range(minRssAmt,maxRssAmt);
         // numRssToSpawnIndv is an array to show how much of each rss will spawn
         // 0 - Iron , 1 - Copper, 2 - Gold, 3 - Titanium
@@ -377,33 +384,69 @@ public class ResourceManager : MonoBehaviour
         float copperSpawnRate = setCopperSpawnRate + ironSpawnRate;
         float goldSpawnRate = setGoldSpawnRate + copperSpawnRate;
         float titaniumSpawnRate = setTitaniumSpawnRate + goldSpawnRate;
-        for (int i = 0; i < numRssToSpawnTot; i++)
+        if (true)
         {
-            // Randomize spawn amounts
-            // Need to fix
-            float Rand = Random.value;
-            if (Rand < ironSpawnRate)
+            for (int i = 0; i < numRssToSpawnTot; i++)
             {
-                numRssToSpawnIndv[0]++;
-                continue;
-            }
-            if (Rand < copperSpawnRate)
-            {
-                numRssToSpawnIndv[1]++;
-                continue;
-            }
-            if (Rand < goldSpawnRate)
-            {
-                numRssToSpawnIndv[2]++;
-                continue;
-            }
-            if (Rand < titaniumSpawnRate)
-            {
-                numRssToSpawnIndv[3]++;
-                continue;
+                int rssTypeToSpawn = Random.Range(1, 101);
+                if (rssTypeToSpawn < 41 )
+                {
+                    numRssToSpawnIndv[0]++;
+                    continue;
+                }
+                if (rssTypeToSpawn < 71)
+                {
+                    numRssToSpawnIndv[1]++;
+                    continue;
+                }
+                if (rssTypeToSpawn < 91)
+                {
+                    numRssToSpawnIndv[2]++;
+                    continue;
+                }
+                if (rssTypeToSpawn <= 101 )
+                {
+                    numRssToSpawnIndv[3]++;
+                    continue;
+                }
+                else
+                    Debug.Log("This isnt working right!");
+                // Randomize spawn amounts
+                // Need to fix
+                /*
+                float Rand = Random.value;
+                if (Rand > 1 - ironSpawnRate)
+                {
+                    numRssToSpawnIndv[0]++;
+                    continue;
+                }
+                if (Rand < 1 - copperSpawnRate)
+                {
+                    numRssToSpawnIndv[1]++;
+                    continue;
+                }
+                if (Rand < 1 - goldSpawnRate)
+                {
+                    numRssToSpawnIndv[2]++;
+                    continue;
+                }
+                if (Rand < 1 - titaniumSpawnRate)
+                {
+                    numRssToSpawnIndv[3]++;
+                    continue;
+                }
+                else
+                    Debug.Log("This isnt working right!"); */
             }
         }
-        Debug.Log("Amount of each Rss to spawn: " + numRssToSpawnIndv);
+        else {
+            numRssToSpawnIndv[0] = 10;
+            numRssToSpawnIndv[1] = 10;
+            numRssToSpawnIndv[2] = 10;
+            numRssToSpawnIndv[3] = 10;
+        }
+
+        Debug.Log("Amount of each Rss to spawn: " + numRssToSpawnTot);
         int x = 0;
         for (int i = 0; i < numRssToSpawnTot; i++)
         {
@@ -429,16 +472,26 @@ public class ResourceManager : MonoBehaviour
                         break;
                     } 
                 }
+                //List<Transform> rocks = RockManager.main.rocks;
+                //foreach (Transform rock in rocks)
+                //{
+                //    if (Vector3.Distance(rock.position, spawnPoint) <= minDistanceBetweenObj)
+                //    {
+                //        legalPoint = false;
+                //        break;
+                //    }
+                //}
 
-                // List<Transform> homes = WaypointManager.main.GetHomeTransforms();
-                // foreach (Transform home in homes)
-                // {
-                //     if (Vector3.Distance(home.position, spawnPoint) <= minDistanceFromHome)
-                //     {
-                //         legalPoint = false;
-                //         break;
-                //     }
-                // }
+                //List<Transform> homes = WaypointManager.main.GetHomeTransforms();
+                //foreach (Transform home in homes)
+                //{
+                //    Debug.Log("RSS: Waypoint here: " + home.position);
+                //    if (Vector3.Distance(home.position, spawnPoint) <= minDistanceFromHome)
+                //    {
+                //        legalPoint = false;
+                //        break;
+                //    }
+                //}
 
                 if (spawnAttempt == maxSpawnAttempts)
                 {
@@ -472,6 +525,10 @@ public class ResourceManager : MonoBehaviour
                     newIronResource.SetReqEmptyTime(resourceEmptyTime);
                     newIronResource.setRegenChance(resourceRegenChance);
                     resourceList.Add(newIronResource);
+                    //Transform rssTransform = newIronResource.ReturnResourceTransform();
+                    //Vector2 rssV2 = rssTransform.position;
+                    //Waypoint closestWP = WaypointManager.main.ReturnClosestWaypoint(rssV2);
+                    //WaypointManager.main.AddtorememberedWaypoints(closestWP, ResourceType.IRON);
                     numRssToSpawnIndv[0]--;
                     break;
                 case 1:
@@ -529,42 +586,42 @@ public class ResourceManager : MonoBehaviour
      private void AddIronToStorage(float amtToAdd) 
     {
 
-        ironAMT += amtToAdd;
-        Debug.Log(amtToAdd + " " + ironAMT + " added to storage");
-        if (ironAMT > 10)
+        ironStoredAmount += amtToAdd;
+        Debug.Log(amtToAdd + " " + ironStoredAmount + " added to storage");
+        if (ironStoredAmount > 10)
         {
-            Debug.Log("Iron over capacity, " + ( ironAMT-amtToAdd) + " has gone to waste");
-            ironAMT = 10.0f;
+            Debug.Log("Iron over capacity, " + ( ironStoredAmount-amtToAdd) + " has gone to waste");
+            ironStoredAmount = 10.0f;
         }    
     }
     private void AddCopperToStorage(float amtToAdd) 
     {
-        copperAMT += amtToAdd;
-        Debug.Log(amtToAdd + " " + copperAMT + " added to storage");
-        if (copperAMT > 10)
+        copperStoredAmount += amtToAdd;
+        Debug.Log(amtToAdd + " " + copperStoredAmount + " added to storage");
+        if (copperStoredAmount > 10)
         {
-            Debug.Log("Copper over capacity, " + ( copperAMT-amtToAdd) + " has gone to waste");
-            copperAMT = 10.0f;
+            Debug.Log("Copper over capacity, " + ( copperStoredAmount-amtToAdd) + " has gone to waste");
+            copperStoredAmount = 10.0f;
         } 
     }
     private void AddGoldToStorage (float amtToAdd) 
     {
-        goldAMT += amtToAdd;
-        Debug.Log(amtToAdd + " " + goldAMT + " added to storage");
-        if (goldAMT > 10)
+        goldStoredAmount += amtToAdd;
+        Debug.Log(amtToAdd + " " + goldStoredAmount + " added to storage");
+        if (goldStoredAmount > 10)
         {
-            Debug.Log("Gold over capacity, " + ( goldAMT-amtToAdd) + " has gone to waste");
-            goldAMT = 10.0f;
+            Debug.Log("Gold over capacity, " + ( goldStoredAmount-amtToAdd) + " has gone to waste");
+            goldStoredAmount = 10.0f;
         } 
     }
     private void AddTitaniumToStorage (float amtToAdd) 
     {
-        titaniumAMT += amtToAdd;
-        Debug.Log(amtToAdd + " " + titaniumAMT + " added to storage");
-        if (titaniumAMT > 10)
+        titaniumStoredAmount += amtToAdd;
+        Debug.Log(amtToAdd + " " + titaniumStoredAmount + " added to storage");
+        if (titaniumStoredAmount > 10)
         {
-            Debug.Log("Titanium over capacity, " + ( titaniumAMT-amtToAdd) + " has gone to waste");
-            titaniumAMT = 10.0f;
+            Debug.Log("Titanium over capacity, " + ( titaniumStoredAmount-amtToAdd) + " has gone to waste");
+            titaniumStoredAmount = 10.0f;
         } 
     }
     // Stuff
@@ -704,7 +761,6 @@ public class ResourceManager : MonoBehaviour
     public void RemoveResource(Resource resource_to_remove ) // Call returnclosestwaypoint to that resource & call removerememberd path 
     {
         ResourceManager.ResourceType resource_type = resource_to_remove.ReturnResourceType();
-        // GameObject tr = resource_to_remove.GetComponent<Resource>
         Transform transformResource = resource_to_remove.ReturnResourceTransform();
         Waypoint closestWaypoint = WaypointManager.main.ReturnClosestWaypoint(transformResource.position);
         WaypointManager.main.RemoveRememberedPath(resource_type, closestWaypoint );
