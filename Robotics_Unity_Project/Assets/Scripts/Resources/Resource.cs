@@ -26,12 +26,14 @@ public class Resource : MonoBehaviour
     #region Run-Time Fields
 
     private ResourceManager.ResourceType type;
+    private Waypoint waypoint;
     private int amount;
     private float emptyTime;
     private float reqEmptyTime;
     private float regenChance;
     private float checkRegenTime;
     private int resourceScale;
+    private float intialSize;
 
     #endregion
 
@@ -60,6 +62,16 @@ public class Resource : MonoBehaviour
 
     #region Public Methods
 
+    public void AddWaypoint(Waypoint newwaypoint)
+    {
+        waypoint = newwaypoint;
+    }
+
+    public Waypoint ReturnWaypoint()
+    {
+        return waypoint;
+    }
+
     public void SetResourceScale(int scale)
     {
         resourceScale = scale;
@@ -68,9 +80,9 @@ public class Resource : MonoBehaviour
     public void SetAmount(float value)
     {
         amount = (int)(value * resourceScale) + 1;
-        if (amount <= 1)
+        if (amount < 1)
         {
-            amount = 2;
+            amount = 1;
         }
     }
 
@@ -91,6 +103,7 @@ public class Resource : MonoBehaviour
 
     public void SetRssSize(float size)
     {
+        intialSize = size;
         Vector3 rssSize = new Vector3(size / resourceSizeScale, size / resourceSizeScale, size / resourceSizeScale);
 
         resourceTransform.localScale = rssSize;
@@ -122,9 +135,11 @@ public class Resource : MonoBehaviour
             ResourceManager.main.RemoveResource(this);
             emptyTime = Time.time;
             StartCoroutine(DetermineRegen());
+            SetRssSize(0);
         }
 
-        SetRssSize(amount / resourceScale);
+        float size = ((float)amount - 1) / (float)resourceScale;
+        SetRssSize(size);
     }
 
     public int ReturnResourceAmount()

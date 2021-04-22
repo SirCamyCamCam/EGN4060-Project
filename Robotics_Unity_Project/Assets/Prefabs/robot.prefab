@@ -182,12 +182,14 @@ MonoBehaviour:
   travelNoise: 0.01
   travelSpeed: 2
   travelRotationSpeed: 6
+  waypointWeight: 1.3
   searchSwitchDistance: 1
   searchNoise: 0.005
   searchSpeed: 2
   searchRotationSpeed: 4
-  nearbyRockWeight: 1
-  nearbyRobotWeight: 0.2
+  nearbyRockWeight: 1.1
+  nearbyRobotWeight: 0.5
+  nearbyEdgeWeight: 3
   idleDistance: 1
   idleSpeed: 1
   idleRotationSpeed: 5

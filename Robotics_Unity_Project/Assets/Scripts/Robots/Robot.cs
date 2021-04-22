@@ -204,7 +204,6 @@ public class Robot : MonoBehaviour
                 robotState = RobotState.IDLE;
             }
         }
-        // Collecting
         else if (robotState == RobotState.COLLECT)
         {
             if (targetResource.ReturnResourceAmount() == 0)
@@ -596,7 +595,7 @@ public class Robot : MonoBehaviour
             Waypoint closeWaypoint = WaypointManager.main.ReturnClosestWaypoint(robotTransform.position);
             List<Waypoint> list = WaypointManager.main.ReturnToHome(closeWaypoint);
             AssignWaypointList(list);
-            WaypointManager.main.AddtorememberedWaypoints(closeWaypoint, targetResourceType);
+            WaypointManager.main.AddtorememberedWaypoints(closeWaypoint, targetResourceType, resource);
             WaypointManager.main.SelectLines(list);
             AssignTargetWaypoint(list[0]);
         }

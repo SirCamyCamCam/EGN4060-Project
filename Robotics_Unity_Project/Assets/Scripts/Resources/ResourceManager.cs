@@ -291,52 +291,52 @@ public class ResourceManager : MonoBehaviour
             {
                 case 0:
                     GameObject newIron = Instantiate(ironPrefab, spawnPoint, Quaternion.Euler(0, 0, rssRotation), ironParent.transform);
-                    Resource newIronResource = newIron.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
-                    newIronResource.SetRssSize(rssScale); // replace with newiron
+                    Resource newIronResource = newIron.GetComponent<Resource>();
+                    newIronResource.SetResourceScale(resourceScale);
+                    newIronResource.SetRssSize(rssScale);
                     newIronResource.AssignResourceType(ResourceType.IRON);
                     newIronResource.SetAmount(rssScale);
                     newIronResource.SetReqEmptyTime(resourceMinEmptyTime);
                     newIronResource.SetRegenChance(resourceRegenChance);
-                    newIronResource.SetResourceScale(resourceScale);
                     resourceList.Add(newIronResource);
                     ironList.Add(newIronResource);
                     numRssToSpawnIndv[0]--;
                     break;
                 case 1:
                     GameObject newCopper = Instantiate(copperPrefab, spawnPoint, Quaternion.Euler(0, 0, rssRotation), copperParent.transform);
-                    Resource newCopperResource = newCopper.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
-                    newCopperResource.SetRssSize(rssScale); // replace with newiron
+                    Resource newCopperResource = newCopper.GetComponent<Resource>();
+                    newCopperResource.SetResourceScale(resourceScale);
+                    newCopperResource.SetRssSize(rssScale);
                     newCopperResource.AssignResourceType(ResourceType.COPPER);
                     newCopperResource.SetAmount(rssScale);
                     newCopperResource.SetReqEmptyTime(resourceMinEmptyTime);
                     newCopperResource.SetRegenChance(resourceRegenChance);
-                    newCopperResource.SetResourceScale(resourceScale); 
                     copperList.Add(newCopperResource);
                     resourceList.Add(newCopperResource);
                     numRssToSpawnIndv[1]--;
                     break;
                 case 2:
                     GameObject newGold = Instantiate(goldPrefab, spawnPoint, Quaternion.Euler(0, 0, rssRotation), goldParent.transform);
-                    Resource newGoldResource = newGold.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
+                    Resource newGoldResource = newGold.GetComponent<Resource>();
+                    newGoldResource.SetResourceScale(resourceScale);
                     newGoldResource.SetRssSize(rssScale); // replace with newiron
                     newGoldResource.AssignResourceType(ResourceType.GOLD);
                     newGoldResource.SetAmount(rssScale);
                     newGoldResource.SetReqEmptyTime(resourceMinEmptyTime);
                     newGoldResource.SetRegenChance(resourceRegenChance);
-                    newGoldResource.SetResourceScale(resourceScale);
                     goldList.Add(newGoldResource);
                     resourceList.Add(newGoldResource);
                     numRssToSpawnIndv[2]--;
                     break;
                 case 3:
                     GameObject newTitanium = Instantiate(titaniumPrefab, spawnPoint, Quaternion.Euler(0, 0, rssRotation), titaniumParent.transform);
-                    Resource newTitaniumResource = newTitanium.GetComponent<Resource>(); // replace with newiron .SetRssSize(rssScale);
-                    newTitaniumResource.SetRssSize(rssScale); // replace with newiron
+                    Resource newTitaniumResource = newTitanium.GetComponent<Resource>();
+                    newTitaniumResource.SetResourceScale(resourceScale);
+                    newTitaniumResource.SetRssSize(rssScale); 
                     newTitaniumResource.AssignResourceType(ResourceType.TITANIUM);
                     newTitaniumResource.SetAmount(rssScale);
                     newTitaniumResource.SetReqEmptyTime(resourceMinEmptyTime);
                     newTitaniumResource.SetRegenChance(resourceRegenChance);
-                    newTitaniumResource.SetResourceScale(resourceScale); 
                     titaniumList.Add(newTitaniumResource);
                     resourceList.Add(newTitaniumResource);
                     numRssToSpawnIndv[3]--;
@@ -512,8 +512,7 @@ public class ResourceManager : MonoBehaviour
         ResourceManager.ResourceType resource_type = resource_to_remove.ReturnResourceType();
         Transform transformResource = resource_to_remove.ReturnResourceTransform();
 
-        Waypoint closestWaypoint = WaypointManager.main.ReturnClosestWaypoint(transformResource.position);
-        WaypointManager.main.RemoveRememberedPath(resource_type, closestWaypoint);
+        WaypointManager.main.RemoveRememberedPath(resource_type, resource_to_remove);
 
         resourceList.Remove(resource_to_remove);
         emptyResourceList.Add(resource_to_remove);
@@ -588,15 +587,15 @@ public class ResourceManager : MonoBehaviour
         {
             RobotManager.main.AddToResourceQueue(ResourceType.IRON);
         }
-        else if (copperStoredAmount < copperMinRequiredAmt)
+        if (copperStoredAmount < copperMinRequiredAmt)
         {
             RobotManager.main.AddToResourceQueue(ResourceType.COPPER);
         }
-        else if (titaniumStoredAmount < titaniumMinRequiredAmt)
+        if (titaniumStoredAmount < titaniumMinRequiredAmt)
         {
             RobotManager.main.AddToResourceQueue(ResourceType.TITANIUM);
         }
-        else if (goldStoredAmount < goldMinRequiredAmt)
+        if (goldStoredAmount < goldMinRequiredAmt)
         {
             RobotManager.main.AddToResourceQueue(ResourceType.GOLD);
         }
