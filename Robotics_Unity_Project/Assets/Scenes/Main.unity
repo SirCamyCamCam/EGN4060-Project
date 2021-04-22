@@ -2381,57 +2381,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minRssAmt: 50
   maxRssAmt: 60
-  minDistanceBetweenObj: 6
-  maxDistanceBetweenObj: 0
+  minDistanceBetweenResources: 0.2
+  minDistanceBetweenRocks: 0.2
+  minDistanceBetweenWaypoints: 0.2
+  minDistanceFromHome: 4
   xBorderMagnitude: 48
   yBorderMagnitude: 48
-  maxSpawnAttempts: 30
-  minDistanceFromHome: 10
+  maxSpawnAttempts: 100
   rssSizeCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.03750229
-      value: 0.049545288
-      inSlope: 0
-      outSlope: 0
+      time: -0.07068634
+      value: 0.010650635
+      inSlope: 2.8966107
+      outSlope: 2.8966107
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.04660418
     - serializedVersion: 3
-      time: 0.520813
-      value: 0.32548904
-      inSlope: 2
-      outSlope: 2
+      time: 1
+      value: 1
+      inSlope: 4.0150127
+      outSlope: 4.0150127
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.05704409
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  resourceEmptyTime: 0
-  resourceRegenChance: 0
-  ironNodeMinReq: 0
-  copperNodeMinReq: 0
-  goldNodeMinReq: 0
-  titaniumNodeMinReq: 0
-  setIronSpawnRate: 0.4
-  setCopperSpawnRate: 0.3
-  setGoldSpawnRate: 0.2
-  setTitaniumSpawnRate: 0.1
-  ironDepeleteRate: 0
-  copperDepeleteRate: 0
-  goldDepeleteRate: 0
-  titaniumDepeleteRate: 0
-  copperMinRequiredAmt: 0
-  goldMinRequiredAmt: 0
-  titaniumMinRequiredAmt: 0
-  ironStorageCapacity: 0
-  copperStorageCapacity: 0
-  goldStorageCapacity: 0
-  titaniumStorageCapacity: 0
+  resourceRegenChance: 0.3
+  resourceMinEmptyTime: 10
+  fetchResourceWaitTime: 1
+  resourceScale: 10
+  ironMinRequiredAmt: 5
+  ironStorageCapacity: 10
+  copperMinRequiredAmt: 5
+  copperStorageCapacity: 10
+  goldMinRequiredAmt: 5
+  goldStorageCapacity: 10
+  titaniumMinRequiredAmt: 5
+  titaniumStorageCapacity: 10
   ironPrefab: {fileID: 1507150004569422737, guid: 96ac9a8dadf16cf4eb45cf93c3ff3642,
     type: 3}
   copperPrefab: {fileID: 6068672286827979982, guid: e835111fcb9689f448ebe62abebbc83c,
@@ -3453,8 +3445,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnRate: 3
-  maxRobots: 3
-  minRobots: 1
+  maxRobots: 10
+  minRobots: 10
   robotPrefab: {fileID: 2618801534510681396, guid: 6214723fbe4816241acd5ed2aab8f384,
     type: 3}
   robotManager: {fileID: 200465257}
@@ -17575,7 +17567,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1406474318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25067,6 +25059,7 @@ MonoBehaviour:
   rock3: {fileID: 6546997576716170511, guid: 13f0a8c19ab1ef843824f81b58cb94e1, type: 3}
   rock4: {fileID: 7327627649826948147, guid: 993c4a45faa77cc44968a420506ccd87, type: 3}
   rockParent: {fileID: 2032460346}
+  rocks: []
 --- !u!4 &2032460348
 Transform:
   m_ObjectHideFlags: 0

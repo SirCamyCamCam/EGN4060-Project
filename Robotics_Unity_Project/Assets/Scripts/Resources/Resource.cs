@@ -18,6 +18,8 @@ public class Resource : MonoBehaviour
 
     [SerializeField]
     private Transform resourceTransform;
+    [SerializeField]
+    private float resourceSizeScale;
 
     #endregion
 
@@ -25,40 +27,71 @@ public class Resource : MonoBehaviour
 
     private ResourceManager.ResourceType type;
     private int amount;
-    private int emptyTime;
-    private int reqEmptyTime;
+    private float emptyTime;
+    private float reqEmptyTime;
     private float regenChance;
-
-    
+    private float checkRegenTime;
+    private int resourceScale;
 
     #endregion
 
     #region Monobehaviors 
 
+    private void Start()
+    {
+        emptyTime = 0;
+    }
 
+    #endregion
+
+    #region Private Methods
+
+    private void Regenerate()
+    {
+
+    }
+
+    private void DecreaseSize()
+    {
+
+    }
 
     #endregion
 
     #region Public Methods
-    public void SetAmount()
+
+    public void SetResourceScale(int scale)
     {
-        amount = (int)(Random.value * 10.0);
+        resourceScale = scale;
     }
-    public void SetReqEmptyTime(int reqEmptyTime)
+
+    public void SetAmount(float value)
     {
-        this.reqEmptyTime = reqEmptyTime;
+        amount = (int)(value * resourceScale) + 1;
+        if (amount <= 1)
+        {
+            amount = 2;
+        }
     }
-    public void setRegenChance(float regenChance)
+
+    public void SetReqEmptyTime(int newreqEmptyTime)
     {
-        this.regenChance = regenChance;
+        reqEmptyTime = newreqEmptyTime;
     }
+
+    public void SetRegenChance(float newregenChance)
+    {
+        regenChance = newregenChance;
+    }
+
     public Transform ReturnResourceTransform() 
     {
         return resourceTransform;
     }
+
     public void SetRssSize(float size)
     {
-        Vector3 rssSize = new Vector3(size, size, size);
+        Vector3 rssSize = new Vector3(size / resourceSizeScale, size / resourceSizeScale, size / resourceSizeScale);
 
         resourceTransform.localScale = rssSize;
     }
@@ -85,31 +118,42 @@ public class Resource : MonoBehaviour
         amount--;
         if(amount <= 0)
         {
+            amount = 0;
             ResourceManager.main.RemoveResource(this);
+            emptyTime = Time.time;
+            StartCoroutine(DetermineRegen());
         }
-        // Remove 1 of however many iron/gold/whatever is at the resource
+
+        SetRssSize(amount / resourceScale);
     }
 
-    internal bool DoIRegen()
+    public int ReturnResourceAmount()
     {
-        if (emptyTime < reqEmptyTime)
-        {   
-            return false;
-        }
-        else if (regenChance >= Random.value)
-        {
-            return true;
-        }
-        else 
-        {
-            regenChance = regenChance + (float)01;
-            return false;
-        }
+        return amount;
     }
 
-    public void UpdateEmptyTime()
+    #endregion
+
+    #region Corutines
+
+    private IEnumerator DetermineRegen()
     {
-        emptyTime++;
+        yield return new WaitForSeconds(checkRegenTime);
+
+        if (emptyTime >= reqEmptyTime)
+        {
+            float random = Random.value;
+
+            if (random < regenChance)
+            {
+                Regenerate();
+                ResourceManager.main.Regenerated(this);
+            }
+        }
+        else
+        {
+            StartCoroutine(DetermineRegen());
+        }
     }
 
     #endregion

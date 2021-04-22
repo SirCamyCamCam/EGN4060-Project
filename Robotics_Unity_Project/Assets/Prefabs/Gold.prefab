@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3024885878990732622}
   - component: {fileID: 2189108312522228208}
   - component: {fileID: 1283287039906448215}
+  - component: {fileID: -338317329345819782}
   m_Layer: 0
   m_Name: Gold
   m_TagString: resource
@@ -94,6 +95,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resourceTransform: {fileID: 4431982894016240574}
+  resourceSizeScale: 2
 --- !u!58 &1283287039906448215
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -110,3 +112,24 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 2.5
+--- !u!50 &-338317329345819782
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3629729594188652416}
+  m_BodyType: 2
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0

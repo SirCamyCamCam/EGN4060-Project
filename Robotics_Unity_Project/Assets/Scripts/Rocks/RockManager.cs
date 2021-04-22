@@ -108,16 +108,7 @@ public class RockManager : MonoBehaviour
                         break;
                     }
                 }
-                // 
-                List<Resource> resources = ResourceManager.main.resourceList;
-                foreach (Resource rss in resources)
-                {
-                    if (Vector3.Distance(rss.transform.position, spawnPoint) <= minDistanceFromHome)
-                    {
-                        legalPoint = false;
-                        break;
-                    }
-                }
+
                 if (spawnAttempt == maxSpawnAttempts)
                 {
                     return;

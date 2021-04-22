@@ -204,19 +204,6 @@ public class WaypointManager : MonoBehaviour {
             DeleteConnectionsThroughResources();
             DeleteUnconnectedWaypoints();
         }
-
-        /*if (enable == false)
-        {
-            enable = true;
-            List<Waypoint> path = null;
-            int random = 0;
-            for (int i = 0; i < 6; i++)
-            {
-                random = Random.Range(0, allWaypoints.Count - 1);
-                path = ReturnToHome(allWaypoints[random]);
-                SelectLines(path);
-            }
-        }*/
     }
 
     #endregion
@@ -382,6 +369,7 @@ public class WaypointManager : MonoBehaviour {
             }
         }
     }
+
     private void DeleteConnectionsThroughResources()
     {
         foreach (Waypoint waypoint in allWaypoints)
@@ -428,7 +416,6 @@ public class WaypointManager : MonoBehaviour {
             }
         }
     }
-
 
     private void ConnectAllWaypoints()
     {
@@ -806,12 +793,13 @@ public class WaypointManager : MonoBehaviour {
 
     public void AddtorememberedWaypoints(Waypoint waypoint, ResourceManager.ResourceType typeAtEndOfPath)
     {
-        List<int> intList = rememberedWaypointsKeys[typeAtEndOfPath];
-        if (intList == null)
+        if (!rememberedWaypointsKeys.ContainsKey(typeAtEndOfPath))
         {
-            intList = new List<int>();
+            List<int> newList = new List<int>();
+            rememberedWaypointsKeys.Add(typeAtEndOfPath, newList);
         }
 
+        List<int> intList = rememberedWaypointsKeys[typeAtEndOfPath];
         bool validInt = false;
         int random = 0;
         while (!validInt)
@@ -830,26 +818,36 @@ public class WaypointManager : MonoBehaviour {
 
     public Waypoint GetRememberedPath(ResourceManager.ResourceType rescouceToFind)
     {
-        
-        List<int> returnedList = rememberedWaypointsKeys[rescouceToFind];
-        int random = Random.Range(0, returnedList.Count - 1);
-        if (random < 0)
+        if (!rememberedWaypointsKeys.ContainsKey(rescouceToFind))
         {
             return null;
         }
+
+        List<int> returnedList = rememberedWaypointsKeys[rescouceToFind];
+        if (returnedList.Count == 0)
+        {
+            return null;
+        }
+
+        int random = Random.Range(0, returnedList.Count - 1);
 
         return rememberedWaypoints[(rescouceToFind, returnedList[random])];
     }
 
     public void RemoveRememberedPath(ResourceManager.ResourceType typeToRemove, Waypoint waypointToRemove)
     {
-        List<int> returnedIntList = rememberedWaypointsKeys[typeToRemove];
+        if (!rememberedWaypointsKeys.ContainsKey(typeToRemove))
+        {
+            return;
+        }
 
+        List<int> returnedIntList = rememberedWaypointsKeys[typeToRemove];
         foreach (int i in returnedIntList)
         {
             if (rememberedWaypoints[(typeToRemove, i)] == waypointToRemove)
             {
                 rememberedWaypoints.Remove((typeToRemove, i));
+                rememberedWaypointsKeys[typeToRemove].Remove(i);
             }
         }
     }
@@ -888,7 +886,6 @@ public class WaypointManager : MonoBehaviour {
         return homes;
     }
    
-
     public void SelectLines(List<Waypoint> list)
     {
         int listLength = list.Count;
@@ -916,7 +913,7 @@ public class WaypointManager : MonoBehaviour {
     {
         int listLength = list.Count;
 
-        for (int i = 0; i < listLength - 2; i++)
+        for (int i = 0; i < listLength - 1; i++)
         {
             WaypointBridge currentBridge = null;
             foreach (WaypointBridge bridge in bridgeSet)
@@ -926,6 +923,11 @@ public class WaypointManager : MonoBehaviour {
                     currentBridge = bridge;
                     break;
                 }
+            }
+
+            if (currentBridge == null)
+            {
+                return;
             }
 
             numTravelingOnLine[currentBridge] -= 1;
@@ -953,6 +955,16 @@ public class WaypointManager : MonoBehaviour {
         {
             waypointLines[bridge].enabled = false;
         }
+    }
+
+    public List<Transform> GetWaypointTransforms()
+    {
+        List<Transform> list = new List<Transform>();
+        foreach (Waypoint waypoint in allWaypoints)
+        {
+            list.Add(waypoint.ReturnWaypointTransform());
+        }
+        return list;
     }
 
     #endregion

@@ -80,7 +80,7 @@ public class RobotManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (frame < 3)
+        if (frame < 4)
         {
             frame++;
         }
@@ -97,11 +97,6 @@ public class RobotManager : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
-    {
-
-    }
-
     #endregion
 
     #region Private Methods
@@ -110,7 +105,7 @@ public class RobotManager : MonoBehaviour
     {
         foreach (Robot robot in robotList)
         {
-            if (robot.GetRobotState() == Robot.RobotState.IDLE)
+            if (robot.GetRobotState() == Robot.RobotState.IDLE && resourceQueue.Count != 0)
             {
                 ResourceManager.ResourceType typeToGet = resourceQueue.Dequeue();
                 TellRobotToGetResource(robot, typeToGet);
@@ -121,6 +116,12 @@ public class RobotManager : MonoBehaviour
     private void TellRobotToGetResource(Robot robot, ResourceManager.ResourceType type)
     {
         Waypoint closestToResource = WaypointManager.main.GetRememberedPath(type);
+        if (closestToResource == null)
+        {
+            robot.FindResource(type);
+            return;
+        }
+   
         Waypoint closetToRobot = WaypointManager.main.ReturnClosestWaypoint(robot.ReturnRobotTransform().position);
         List<Waypoint> path = WaypointManager.main.PathToWaypoint(closetToRobot, closestToResource);
         WaypointManager.main.SelectLines(path);
