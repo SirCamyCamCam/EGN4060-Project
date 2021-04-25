@@ -527,7 +527,10 @@ public class Robot : MonoBehaviour
         robotDead = true;
         StartCoroutine(FlashDeadBattery());
 
-        waypointPath.Add(prevWaypoint);
+        if (prevWaypoint != null)
+        {
+            waypointPath.Add(prevWaypoint);
+        }
         WaypointManager.main.UnselectLines(waypointPath);
     }
 
