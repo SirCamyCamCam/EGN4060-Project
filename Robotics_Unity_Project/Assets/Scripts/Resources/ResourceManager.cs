@@ -213,10 +213,11 @@ public class ResourceManager : MonoBehaviour
             Debug.Log("Total Gold : " + goldList.Count);
             Debug.Log("Total Titanium : " + titaniumList.Count);
             StartCoroutine(DetermineResourceToGet());
-            StartCoroutine(DepleteCopper());
-            StartCoroutine(DepleteGold());
-            StartCoroutine(DepleteIron());
-            StartCoroutine(DepleteTitanium());
+            StartCoroutine(DepleteResources());
+            //StartCoroutine(DepleteCopper());
+            //StartCoroutine(DepleteGold());
+            //StartCoroutine(DepleteIron());
+            //StartCoroutine(DepleteTitanium());
             //ResourceUI.main.Start();
             //copperText.text = "0 / " + copperStorageCapacity;
             //ironText.text = "0 / " + ironStorageCapacity;
@@ -658,12 +659,21 @@ public class ResourceManager : MonoBehaviour
         yield return new WaitForSeconds(fetchResourceWaitTime);
         StartCoroutine(DetermineResourceToGet());
     }
+    private IEnumerator DepleteResources()
+    {
+        yield return new WaitForSeconds(10);
+        StartCoroutine(DepleteCopper());
+        StartCoroutine(DepleteGold());
+        StartCoroutine(DepleteIron());
+        StartCoroutine(DepleteTitanium());
 
+    }
     private IEnumerator DepleteIron()
     {
         yield return new WaitForSeconds(ironDeletionTime);
 
         ironStoredAmount -= ironDeletionRate;
+        // if > 0 ==> 0
         // ironText.text = ironStoredAmount.ToString() + "/" + ironStorageCapacity.ToString();
         StartCoroutine(DepleteIron());
     }
