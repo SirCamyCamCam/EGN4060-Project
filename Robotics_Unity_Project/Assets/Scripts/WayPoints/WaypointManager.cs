@@ -952,6 +952,10 @@ public class WaypointManager : MonoBehaviour {
 
     public void UnselectLines(List<Waypoint> list)
     {
+        if (list == null)
+        {
+            return;
+        }
         int listLength = list.Count;
 
         for (int i = 0; i < listLength - 1; i++)
