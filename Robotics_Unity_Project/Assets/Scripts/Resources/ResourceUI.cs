@@ -45,10 +45,10 @@ public class ResourceUI : MonoBehaviour
         //if (ResourceManager.main.isActiveAndEnabled)
         //{
 
-            copperText.text = "0 / C";
-            ironText.text = "0 / I";
-            goldText.text = "0 / G";
-            titaniumText.text = "0 / T ";
+            copperText.text = "";
+            ironText.text = "";
+            goldText.text = "";
+            titaniumText.text = "";
             StartCoroutine(UpdateResourceUI());
         //bgPanel.enabled
         //Canvas myCanvas = this.GetComponent<Canvas>();
