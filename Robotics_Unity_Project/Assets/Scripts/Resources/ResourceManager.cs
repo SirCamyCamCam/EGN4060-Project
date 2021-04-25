@@ -9,6 +9,7 @@
 // Add Decay
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class ResourceManager : MonoBehaviour
@@ -62,6 +63,20 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private float fetchResourceWaitTime;
 
+    //[Space(10)]
+    //[Header("ResourceUI")]
+    //public GameObject Panel;
+    //public TMP_Text resourceUITitle;
+    //public TMP_Text ironTitle;
+    //public TMP_Text copperTitle;
+    //public TMP_Text goldTitle;
+    //public TMP_Text titaniumTitle;
+    //public TMP_Text ironText;
+    //public TMP_Text copperText;
+    //public TMP_Text goldText;
+    //public TMP_Text titaniumText;
+
+
     [Space(20)]
     [Header("Resource Capacity Settings")]
     [SerializeField]
@@ -69,7 +84,7 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private float ironMinRequiredAmt;
     [SerializeField]
-    private int ironStorageCapacity;
+    public int ironStorageCapacity;
     [SerializeField]
     private float ironDeletionRate;
     [SerializeField]
@@ -77,7 +92,7 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private float copperMinRequiredAmt;
     [SerializeField]
-    private int copperStorageCapacity;
+    public int copperStorageCapacity;
     [SerializeField]
     private float copperDeletionRate;
     [SerializeField]
@@ -85,7 +100,7 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private float goldMinRequiredAmt;
     [SerializeField]
-    private int goldStorageCapacity;
+    public int goldStorageCapacity;
     [SerializeField]
     private float goldDeletionRate;
     [SerializeField]
@@ -93,7 +108,7 @@ public class ResourceManager : MonoBehaviour
     [SerializeField]
     private float titaniumMinRequiredAmt;
     [SerializeField]
-    private int titaniumStorageCapacity;
+    public int titaniumStorageCapacity;
     [SerializeField]
     private float titaniumDeletionRate;
     [SerializeField]
@@ -141,10 +156,10 @@ public class ResourceManager : MonoBehaviour
 
     private int frame = 0;
     
-    private float ironStoredAmount;
-    private float copperStoredAmount;
-    private float goldStoredAmount;
-    private float titaniumStoredAmount;
+     public float ironStoredAmount;
+     public float copperStoredAmount;
+     public float goldStoredAmount;
+     public float titaniumStoredAmount;
 
     private bool rssSpawned;
 
@@ -169,11 +184,16 @@ public class ResourceManager : MonoBehaviour
         copperStoredAmount = 0;
         goldStoredAmount = 0;
         titaniumStoredAmount = 0;
+        
     }
 
     // Start is called before the first frame update
     void Start()
     {
+       
+
+
+
 
     }
 
@@ -197,7 +217,15 @@ public class ResourceManager : MonoBehaviour
             StartCoroutine(DepleteGold());
             StartCoroutine(DepleteIron());
             StartCoroutine(DepleteTitanium());
-        }  
+            //ResourceUI.main.Start();
+            //copperText.text = "0 / " + copperStorageCapacity;
+            //ironText.text = "0 / " + ironStorageCapacity;
+            //goldText.text = "0 / " + goldStorageCapacity;
+            //titaniumText.text = "0 / "  + titaniumStorageCapacity;
+
+        }
+
+
     }
 
     #endregion
@@ -373,6 +401,7 @@ public class ResourceManager : MonoBehaviour
     {
 
         ironStoredAmount += amtToAdd;
+        //ironText.text = ironStoredAmount.ToString() + "/" + ironStorageCapacity.ToString();
         if (ironStoredAmount > ironStorageCapacity)
         {
             ironStoredAmount = ironStorageCapacity;
@@ -382,6 +411,8 @@ public class ResourceManager : MonoBehaviour
     private void AddCopperToStorage(int amtToAdd) 
     {
         copperStoredAmount += amtToAdd;
+   //     copperText.text = copperStoredAmount.ToString() + "/" + copperStorageCapacity.ToString();
+
         if (copperStoredAmount > copperStorageCapacity)
         {
             copperStoredAmount = copperStorageCapacity;
@@ -391,6 +422,8 @@ public class ResourceManager : MonoBehaviour
     private void AddGoldToStorage (int amtToAdd) 
     {
         goldStoredAmount += amtToAdd;
+      //  goldText.text = goldStoredAmount.ToString() + "/" + goldStorageCapacity.ToString();
+
         if (goldStoredAmount > goldStorageCapacity)
         {
             goldStoredAmount = goldStorageCapacity;
@@ -400,6 +433,8 @@ public class ResourceManager : MonoBehaviour
     private void AddTitaniumToStorage (int amtToAdd) 
     {
         titaniumStoredAmount += amtToAdd;
+     //   titaniumText.text = titaniumStoredAmount.ToString() + "/" + titaniumStorageCapacity.ToString();
+
         if (titaniumStoredAmount > titaniumStorageCapacity)
         {
             titaniumStoredAmount = titaniumStorageCapacity;
@@ -629,7 +664,7 @@ public class ResourceManager : MonoBehaviour
         yield return new WaitForSeconds(ironDeletionTime);
 
         ironStoredAmount -= ironDeletionRate;
-
+        // ironText.text = ironStoredAmount.ToString() + "/" + ironStorageCapacity.ToString();
         StartCoroutine(DepleteIron());
     }
 
